@@ -1,0 +1,213 @@
+* {
+  box-sizing: border-box;
+}
+
+ul {
+  list-style-type: none;
+}
+/* Create three unequal columns that floats next to each other */
+
+.border-5{
+  border-width:5px !important;
+}
+* {
+  box-sizing: border-box;
+}
+
+#wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 30px;
+}
+
+#game {
+  position: relative;
+  display: inline-grid;
+  background: black;
+}
+
+.game-status {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 50px;
+  border: 5px darkblue solid;
+  background: black;
+  color: white;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 1.5rem;
+}
+
+#endgameboard {
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  position: fixed; /* Sit on top of the page content */
+  display: none; /* Hidden by default */
+  width: 40%; /* Full width (cover the whole page) */
+  height: 60%; /* Full height (cover the whole page) */
+  top: 20%;
+  left: 30%;
+  right: 30%;
+  bottom: 0;
+  background-color: lightgray; /* Black background with opacity */
+  z-index: 2; /* Specify a stack order in case you're using a different order for other elements */
+  cursor: pointer; /* Add a pointer on hover */
+}
+
+#score {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 200px;
+  height: 50px;
+  border: 5px darkblue solid;
+  background: black;
+  margin-top: 20px;
+  color: white;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 2rem;
+}
+
+#start-button {
+  margin-top: 20px;
+}
+
+#gamelobby, #users_lobby  {
+  text-align: center;
+}
+
+#users  {
+  text-align: left;
+  list-style-type: none;
+  list-style-position: inside;
+}
+
+.hide {
+  display: none;
+}
+
+.square {
+  display: block;
+}
+
+.blank, .outside {
+  background: black;
+}
+
+.lair {
+  background-color: #171717;
+}
+
+.wall {
+  border: 1px solid blue;
+}
+
+.dot {
+  background: white;
+  border: 8px solid black;
+  border-radius: 50%;
+}
+
+.pill {
+  background: white;
+  border: 5px solid black;
+  border-radius: 50%;
+}
+
+.ghost {
+  position: relative;
+  border-radius: 10px 10px 2px 2px;
+  border: none;
+}
+
+.ghost::before {
+  content: '';
+  display: block;
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: black;
+  border-radius: 50%;
+  left: 3px;
+  top: 5px;
+  border: 2px solid white;
+}
+
+.ghost::after {
+  content: '';
+  display: block;
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: black;
+  border-radius: 50%;
+  right: 3px;
+  top: 5px;
+  border: 2px solid white;
+}
+
+.scared {
+  background: blue !important;
+}
+
+.ghost1 {
+  /*background: red;*/
+  background-color: black;
+  background-image: url('red_ghost.png');
+  background-size: cover;
+  filter: drop-shadow(1px 4px 1px #4d4d4d);
+}
+
+.ghost2 {
+  /*background: pink;*/
+  background-color: black;
+  background-image: url('blue_ghost.png');
+  background-size: cover;
+  filter: drop-shadow(1px 4px 1px #4d4d4d);
+}
+
+.ghost3 {
+  /*background: cyan;*/
+  background-color: black;
+  background-image: url('orange_ghost.png');
+  background-size: cover;
+  filter: drop-shadow(1px 4px 1px #4d4d4d);
+}
+
+.pacman {
+  background: yellow;
+  border: none;
+  border-radius: 50%;
+  clip-path: polygon(
+    0 0,
+    20px 0,
+    20px -5px,
+    8px 10px,
+    20px 25px,
+    20px 20px,
+    0 20px
+  );
+  animation: chew 0.2s linear forwards infinite;
+}
+
+@keyframes chew {
+  50% {
+    clip-path: polygon(
+      0 0,
+      20px 0,
+      20px 10px,
+      8px 10px,
+      20px 10px,
+      20px 20px,
+      0 20px
+    );
+  }
+}
