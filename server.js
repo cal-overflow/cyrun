@@ -34,7 +34,7 @@ var statusTimer;
 const app = express();
 const server = http.createServer(app);
 const io = socket(server);
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 3000;
 
 app.use(express.static('views')); // Set static folder to /views
 
