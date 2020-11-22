@@ -6,7 +6,10 @@ CyRun is a multiplayer web-based game extremely similar to Pac-Man. There is cur
 * Pacman consumes a ghost       - 2 points
 * Ghost kills Pacman            - 15 points
 
+## Gameplay Demo:
+[![Video of CyRun Gameplay Demo](https://img.youtube.com/vi/cVsZwHIcCJM/0.jpg)](https://youtu.be/cVsZwHIcCJM)
+
 ## Developers:
 * [Christian Lisle](http://christianlisle.com)
-* Joseph Dobosenski
-* Marissa Gustafson
+* [Joseph Dobosenski](https://www.youtube.com/redirect?q=https%3A%2F%2Fjdobo232.wixsite.com%2Fjosephdobosenski&redir_token=QUFFLUhqbFBvU05tWl9FM1RkNHVXbDZuLURfNFpjZUdiQXxBQ3Jtc0ttcmg3aWlqQVFtd2MtcDZWR1FCd0gxSTVPVUd1R0FvdnZlY2RLUmJWd3Q5cDdrMzFhU19uWVMxcUs3VlFqeE9Dd3VLdThYTTVSZEpYUko1ZTVHN3NLaGFSWGREUU4tczY4OUdjSWJ5SGZMTHdaWnJyUQ%3D%3D&event=video_description&v=cVsZwHIcCJM)
+* [Marissa Gustafson](https://www.youtube.com/redirect?q=https%3A%2F%2Fgithub.com%2Fgoofyspoon%3Ftab%3Drepositories&redir_token=QUFFLUhqbjhwVndmTW5UTXo2aXR5a21LYnFXUXo1QzFnUXxBQ3Jtc0tsbmdaZVllTE5TaUZxM1d1bUptLW9JTzlGWlg5Nkl6czByQ0tfOGk0X2RrMkhrRDFsUUNSMy1zWS0wNm92NXQ1MW9vUXdHZ1lLOWFyLUtXcW5FWVZvRXZsMXE4dmZtTjVPbEREdW81dUdFTkRUbWJTMA%3D%3D&event=video_description&v=cVsZwHIcCJM)
