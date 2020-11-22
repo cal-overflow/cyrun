@@ -8,6 +8,7 @@ CyRun is a multiplayer web-based game extremely similar to Pac-Man. There is cur
 
 ## Gameplay Demo:
 [![Video of CyRun Gameplay Demo](https://img.youtube.com/vi/cVsZwHIcCJM/0.jpg)](https://youtu.be/cVsZwHIcCJM)
+(click to view)
 
 ## Developers:
 * [Christian Lisle](http://christianlisle.com)
