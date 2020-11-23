@@ -13,8 +13,5 @@ CyRun is a multiplayer web-based game extremely similar to Pac-Man. There is cur
 
 ## Developers:
 * [Christian Lisle](http://christianlisle.com)
-* [Joseph Dobosenski](https://www.youtube.com/redirect?q=https%3A%2F%2Fjdobo232.wixsite.com%2Fjosephdobosenski&redir_token=QUFFLUhqbFBvU05tWl9FM1RkNHVXbDZuLURfNFpjZUdiQXxBQ3Jtc0ttcmg3aWlqQVFtd2MtcDZWR1FCd0gxSTVPVUd1R0FvdnZlY2RLUmJWd3Q5cDdrMzFhU19uWVMxcUs3VlFqeE9Dd3VLdThYTTVSZEpYUko1ZTVHN3NLaGFSWGREUU4tczY4OUdjSWJ5SGZMTHdaWnJyUQ%3D%3D&event=video_description&v=cVsZwHIcCJM)
- [Marissa Gustafson](https://jdobo232.wixsite.com/josephdobosenski)
-
 * [Joe Dobosenski](https://jdobo232.wixsite.com/josephdobosenski)
 * [Marissa Gustafson](https://github.com/goofyspoon)
