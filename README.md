@@ -7,8 +7,8 @@ CyRun is a multiplayer web-based game extremely similar to Pac-Man. There is cur
 * Ghost kills Pacman            - 15 points
 
 ## Gameplay Demo:
-[![Video of CyRun Gameplay Demo](https://img.youtube.com/vi/cVsZwHIcCJM/0.jpg)](https://youtu.be/cVsZwHIcCJM)
-(click to view)
+[![CyRun Gameplay gif](https://christianlisle.com/wp-content/uploads/2020/11/cyrunDemo.gif)](https://youtu.bd/cVsZwHIcCJM)
+[Full Gameplay Demo](https://youtu.be/cVsZwHIcCJM)
 
 ## Developers:
 * [Christian Lisle](http://christianlisle.com)
