@@ -100,9 +100,8 @@
     function handleWindowResize() {
       if (window.innerWidth > window.innerHeight) {
         document.getElementById('chat_container').style.display = 'block';
-        console.log('landscape');
       }
-      else if (document.getElementById('chat_container').style.display == 'block')  {
+      else if (document.getElementById('chat_container').style.display == 'block' && !(window.innerHeight > window.innerWidth))  {
         document.getElementById('chat_container').style.display = 'none'; // Hide chat if going to portrait from landscape
       }
     }
