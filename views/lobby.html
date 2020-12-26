@@ -1,6 +1,8 @@
 <html>
 <head>
 <title>CyRun - Lobby</title>
+<!-- Meta tag below is important for safari on mobile devices (prevents zooming when a user focuses on a text box, etc.) -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.js"></script>
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 <link rel="stylesheet" href="styles.css" />
@@ -17,15 +19,18 @@
   <div class="row">
     <!-- Left Column -->
     <div class="col-lg-3 mb-4">
-      <div id="chat_container" class="mt-2" >
+      <button onClick="toggleChat();" class="toggleChat btn btn-primary">Chat</button>
+      <div id="chat_container" class="mt-2">
+        <button onClick="toggleChat();" class="toggleChat btn btn-primary">Back</button>
         <h5 id="gamelobby"></h5>
-        <div class="rounded border border-dark bg-light border-5 p-2" id="chat" style="overflow-y: scroll; height: 400px;"></div>
+        <div class="rounded border border-dark bg-light border-5 p-2" id="chat"></div>
         <div class="input-group mt-1">
           <input type="text" placeholder="Type your message" id="chatbox" name="chat" class="form-control">
           <div class="input-group-append">
             <button type="button" id="send" class="btn btn-primary">Send</button>
           </div>
         </div>
+
       </div>
     </div>
 
@@ -81,6 +86,31 @@
   <p style="color:#FFFF00"><span id="pregameMsg">Four players are needed for a game to begin<br /></span>
   Created by <a href="http://christianlisle.com" target="_blank">Christian Lisle</a>, <a href="https://github.com/goofyspoon?tab=repositories" target="_blank">Marissa Gustafson</a>, and Joe Dobosenski</p>
 </footer>
+<script>
+  function toggleChat() {
+    let chat = document.getElementById('chat_container');
+    if (chat.style.display != 'block')
+      chat.style.display = 'block';
+    else {
+      chat.style.display = 'none';
+      document.getElementById('chat_container')
+    }
+
+    // Detect when orientation is changed and fix toggleChat issue that happens when a user hides chat in portrait and then goes to landscape orientation
+    function handleWindowResize() {
+      if (window.innerWidth > window.innerHeight) {
+        document.getElementById('chat_container').style.display = 'block';
+        console.log('landscape');
+      }
+      else if (document.getElementById('chat_container').style.display == 'block')  {
+        document.getElementById('chat_container').style.display = 'none'; // Hide chat if going to portrait from landscape
+      }
+    }
+
+    window.onresize = handleWindowResize;
+}
+
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.9.4/qs.min.js" integrity="sha512-BHtomM5XDcUy7tDNcrcX1Eh0RogdWiMdXl3wJcKB3PFekXb3l5aDzymaTher61u6vEZySnoC/SAj2Y/p918Y3w==" crossorigin="anonymous"></script>
 <script src="./socket.io/socket.io.js"></script>
 <script src="./app.js"></script>

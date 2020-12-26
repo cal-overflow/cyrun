@@ -29,6 +29,45 @@ ul {
   overflow-y: scroll;
 }
 
+@media only screen and (orientation: portrait)  {
+  .toggleChat, #gamelobby, #countdown, #leave_game {
+    font-size: 2em;
+    margin: 10px auto 10px auto;
+    display: block;
+  }
+
+  #chat_container {
+    display: none;
+    margin-top: 0px !important;
+    background-color: #808080;
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    top: 0px;
+    left: 0px;
+    z-index: 10;
+    overflow: hidden;
+  }
+
+  #chat {
+    width: 100%;
+    height: 60vh;
+    max-height: 1000px;
+    font-size: 1.75em;
+  }
+  #chatbox, #send {
+    font-size: 2em;
+  }
+}
+
+
+@media only screen and (orientation: landscape)  {
+  .toggleChat {
+    display: none;
+  }
+}
+
+
 .userListItem {
   padding-top: 10px;
   padding-bottom: 10px;
