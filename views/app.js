@@ -51,6 +51,7 @@ const SQUARE_LIST = [
 
 // Get username and lobby from URL
 const {username, lobby} = Qs.parse(location.search, {ignoreQueryPrefix: true});
+const thisUsername = {username, lobby}.username;
 
 // Join lobby
 socket.emit('joinLobby', {username, lobby});
@@ -131,13 +132,31 @@ function rotateDiv(position, degree){
   this.grid[position].style.transform = `rotate({deg}deg)`;
 }
 
+// Lobby Messages from Server
+socket.on('lobbyMessage', ({user, username, message}) => {
+  const p = document.createElement('p');
+  const usernameSpan = document.createElement('span');
+  const messageSpan = document.createElement('span');
+  usernameSpan.innerText = username;
+  if (socket.id == user.id)
+    usernameSpan.setAttribute('class', 'activePlayerName');
+  messageSpan.innerText = ': ' + message;
+  p.appendChild(usernameSpan);
+  p.appendChild(messageSpan);
+  printChatMessage(p);
+});
+
 // Messages from Server
 socket.on('message', message => {
   const p = document.createElement('p');
   p.innerText = message;
+  printChatMessage(p);
+});
+
+function printChatMessage(p)  {
   chat.appendChild(p);
   chat.scrollTop = chat.scrollHeight; // automatically scroll to bottom of chat messages
-});
+}
 
 // gameOver from server
 socket.on('gameOver', ({lobby, users, gameTime}) => {
@@ -208,17 +227,16 @@ function outputUsers(users) {
 function initRoles(users){
   users.forEach(user => {
     let userDisplay = document.getElementById('user' + user.playerRole);
+    let p = document.createElement('p');
     let img = document.createElement('img');
     let name = document.createElement('span');
-    let score = document.createElement("span");
+    let score = document.createElement('span');
 
     name.innerHTML = user.username;
     score.innerHTML = "Score: 0";
 
     if (user.id === socket.id) {
-      //name.style.fontWeight = "bold";
-      name.setAttribute('id', 'activePlayerName');
-      score.setAttribute('id', 'activePlayerScore');
+      name.setAttribute('class', 'activePlayerName');
     }
 
     if(user.playerRole == 1)
@@ -230,18 +248,17 @@ function initRoles(users){
     else if(user.playerRole == 4)
       img.src = "pacman.png";
 
-    img.setAttribute("height", "35");
-    img.setAttribute("width", "35");
     userDisplay.innerHTML = "";
-    userDisplay.appendChild(img);
-    userDisplay.appendChild(name);
-    userDisplay.appendChild(score);
+    p.appendChild(img);
+    p.appendChild(name);
+    p.appendChild(score);
+    userDisplay.appendChild(p);
   });
 }
 
 function updateScores(users)  {
   users.forEach(user => {
-      userList.children[user.playerRole - 1].children[2].innerHTML = "Score: " + user.score;
+      userList.children[user.playerRole - 1].children[0].children[2].innerHTML = "Score: " + user.score;
   });
 }
 

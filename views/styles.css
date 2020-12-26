@@ -29,25 +29,36 @@ ul {
   overflow-y: scroll;
 }
 
-#users_lobby  {
-  overflow: hidden;
-}
-
 .userListItem {
+  padding-top: 10px;
+  padding-bottom: 10px;
   width: 50%;
   min-height: 50px;
   float: left;
   height: auto;
   text-align: center;
 }
+.userListItem p {
+  word-wrap: break-word;
+  width: 90%;
+  margin: 0 auto;
+  text-align: center;
 
-.userListItem img, .userListItem span {
+}
+.userListItem span {
+  width: 100%;
+  margin: 0 auto;
   text-align: center;
   float: left;
   clear: both;
 }
 
-#activePlayerName {
+.userListItem img {
+  width: auto;
+  height: 20%;
+}
+
+.activePlayerName {
   font-weight: bold;
 }
 

@@ -421,7 +421,7 @@ io.on('connection', socket => {
   // lobby chat -- normal message
   socket.on('lobbyMessage', ({username, message}) => {
     const user = getCurrentUser(socket.id);
-    io.to(user.lobby).emit('message', username + ': ' + message);
+    io.to(user.lobby).emit('lobbyMessage', {user: user, username: username, message: message});
   });
 
   // Runs when client disconnects
