@@ -124,7 +124,7 @@ function drawGameBoard(users, gameBoard){
       board.appendChild(div);
       grid.push(div);
     });
-    console.log(gameBoard);
+    // console.log(gameBoard); // Develoment purposes only. Delete this
 }
 
 function rotateDiv(position, degree){
@@ -196,43 +196,52 @@ socket.on('setRoles', ({users}) => {
   document.getElementById("pregameMsg").innerHTML = "Controls: Use the arrow keys to move your character.<br />";
 });
 
-function initRoles(users){
-  userList.innerHTML = '';
+
+// Add users list to lobby page
+function outputUsers(users) {
   users.forEach(user => {
-    const li = document.createElement('li');
+    let userDisplay = document.getElementById('user' + user.playerRole);
+    userDisplay.innerText = user.username;
+  });
+}
+
+function initRoles(users){
+  users.forEach(user => {
+    let userDisplay = document.getElementById('user' + user.playerRole);
     let img = document.createElement('img');
     let name = document.createElement('span');
-    let br = document.createElement('br');
     let score = document.createElement("span");
 
+    name.innerHTML = user.username;
     score.innerHTML = "Score: 0";
-  
+
     if (user.id === socket.id) {
-      name.innerHTML = " - " + user.username + " (You)";
-      li.style.fontWeight = "bold";
-      li.style.color = "blue";
-    }
-    else{
-      name.innerHTML = " - " + user.username;
+      //name.style.fontWeight = "bold";
+      name.setAttribute('id', 'activePlayerName');
+      score.setAttribute('id', 'activePlayerScore');
     }
 
-    if(user.playerRole == 1) 
-      img.src = "red_ghost.png";  
-    else if(user.playerRole == 2) 
-      img.src = "blue_ghost.png"; 
-    else if(user.playerRole == 3) 
-      img.src = "orange_ghost.png"; 
-    else if(user.playerRole == 4) 
-      img.src = "pacman.png"; 
-            
+    if(user.playerRole == 1)
+      img.src = "red_ghost.png";
+    else if(user.playerRole == 2)
+      img.src = "blue_ghost.png";
+    else if(user.playerRole == 3)
+      img.src = "orange_ghost.png";
+    else if(user.playerRole == 4)
+      img.src = "pacman.png";
+
     img.setAttribute("height", "35");
     img.setAttribute("width", "35");
-    li.appendChild(img); 
-    li.appendChild(name); 
-    li.appendChild(br);  
-    li.appendChild(score); 
-    
-    userList.appendChild(li);
+    userDisplay.innerHTML = "";
+    userDisplay.appendChild(img);
+    userDisplay.appendChild(name);
+    userDisplay.appendChild(score);
+  });
+}
+
+function updateScores(users)  {
+  users.forEach(user => {
+      userList.children[user.playerRole - 1].children[2].innerHTML = "Score: " + user.score;
   });
 }
 
@@ -251,34 +260,6 @@ function startCountDown(){
       clearInterval(interval);
     second--;
   }, 1000);
-}
-
-function updateScores(users)  {
-  users.forEach(user => {
-    if (user.playerRole == 1)
-      userList.children[0].children[3].innerHTML = "Score: " + user.score;
-    if (user.playerRole == 2)
-      userList.children[1].children[3].innerHTML = "Score: " + user.score;
-    if (user.playerRole == 3)
-      userList.children[2].children[3].innerHTML = "Score: " + user.score;
-    if (user.playerRole == 4)
-      userList.children[3].children[3].innerHTML = "Score: " + user.score;
-  });
-}
-
-
-// Add users list to lobby page
-function outputUsers(users) {
-  userList.innerHTML = '';
-  users.forEach(user => {
-    const li = document.createElement('li');
-    li.innerText = user.username;
-    li.setAttribute("id", user.username);
-    if (user.id === socket.id) {
-      li.style.fontWeight = "bold";
-    }
-    userList.appendChild(li);
-  });
 }
 
 this.document.addEventListener('keydown', function(event) {

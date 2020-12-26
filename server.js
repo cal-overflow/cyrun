@@ -61,6 +61,7 @@ io.on('connection', socket => {
     else {
       const user = userJoin(socket.id, username, lobby);
       socket.join(user.lobby);
+      setPlayerNum(user.id, getLobbyUsers(lobby).length); // Users are only assigned a playerNum so they can be displayed on user list before game starts
 
       // Welcome current user to lobby
       socket.emit('message', 'Welcome to CyRun lobby ' + user.lobby);
@@ -103,25 +104,35 @@ io.on('connection', socket => {
     return gameBoard != 1;
   }
 
-  // Set the roles and starting positions of each player and begin the game
+  // Set random player roles and starting positions of each player and begin the game
   function beginGame(user, users)  {
-    for (let i = 0; i < 4; i++) {
-      setPlayerNum(users[i].id, i + 1);
-
-      if (i < 3) { // Players 0, 1, & 2 are ghosts
-          respawn(gameBoard, users[i], false);
-          setPrevIndex(users[i].id, getIndex(users[i].id));
-          gameBoard[getIndex(users[i].id)] = i + 3;
-          setPrevPosType(users[i].id, 8);
-        }
-      else  { // Last player will be pacman
-        var pacmanStart = Math.floor(Math.random() * (292 - 288)) + 288;
-        setIndex(users[i].id, pacmanStart);
-        setPrevIndex(users[i].id, pacmanStart);
-        gameBoard[getIndex(users[i].id)] = 7;
-        setPrevPosType(users[i].id, 0);
+    // Set random Roles
+    let roles = [1, 0, 0, 0, 0]; // array represents available roles (0's are empty roles and 1's are occupied roles)
+    let role = 0;
+    users.forEach(user =>  {
+      while (roles[role] == 1)  { // find a new role if this one is already taken
+        role = Math.floor(Math.random() * 4) + 1;
       }
-    }
+      setPlayerNum(user.id, role);
+      roles[role] = 1;
+    });
+
+    // Set player spawn points
+    users.forEach(user => {
+      if (user.playerRole != 4) { // If player is a ghost spawn in ghostlair
+        respawn(gameBoard, user, false);
+        setPrevIndex(user.id, getIndex(user.id));
+        gameBoard[getIndex(user.id)] = user.playerRole + 2;
+        setPrevPosType(user.id, 8);
+      }
+      else { // IF player is pacman spawn accordingly
+        var pacmanStart = Math.floor(Math.random() * (292 - 288)) + 288;
+        setIndex(user.id, pacmanStart);
+        setPrevIndex(user.id, pacmanStart);
+        gameBoard[getIndex(user.id)] = 7;
+        setPrevPosType(user.id, 0);
+      }
+    })
 
     // Begin game
     io.to(user.lobby).emit('setRoles', {users: users});

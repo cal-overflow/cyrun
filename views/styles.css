@@ -33,6 +33,24 @@ ul {
   overflow: hidden;
 }
 
+.userListItem {
+  width: 50%;
+  min-height: 50px;
+  float: left;
+  height: auto;
+  text-align: center;
+}
+
+.userListItem img, .userListItem span {
+  text-align: center;
+  float: left;
+  clear: both;
+}
+
+#activePlayerName {
+  font-weight: bold;
+}
+
 #leave_game_form {
   position: absolute;
   margin-top: 100px;
@@ -113,12 +131,6 @@ li{
 
 #gamelobby, #users_lobby  {
   text-align: center;
-}
-
-#users  {
-  text-align: left;
-  list-style-type: none;
-  list-style-position: inside;
 }
 
 .hide {
