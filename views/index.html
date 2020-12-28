@@ -26,6 +26,7 @@
         <form id="entranceForm" action="lobby.html" class="form-group">
           <label for="username"><strong>Username</strong></label>
           <input class="form-control" type="text" size="40" placeholder="Type your username" id="username_entrance" name="username" oninvalid="this.setCustomValidity('Please enter a username')" required><br />
+          <p>20 characters or less</p>
           <label for="room"><strong>Game Lobby</strong></label>
           <input class="form-control" type="text" size="40" placeholder="Type the name of the game lobby" id="gamelobby_entrance" name="lobby" oninvalid="this.setCustomValidity('Please enter a game lobby')" required></br />
           <button type="submit" id="submit" class="btn btn-primary">Join lobby</button>
@@ -39,6 +40,14 @@
             <li><span class="bold">PacMan</span>: Collect resources to earn points. Grab a power pill to scare the ghosts and try to catch them to earn points.</li>
             <li><span class="bold">Ghosts</span>: Try to catch PacMan as many times as you can. Each time will earn you points.</li>
             <li>When PacMan is caught, they will safely respawn at a random location on the board.</li>
+          </ul>
+          <h4 id="scoring">Scoring</h4>
+          <ul class="instructions">
+            <li><span class="bold">Who Wins</span>: Either PacMan or the three ghosts will become victorious. The scores of the three ghosts are combined after the game to determine if PacMan or the ghosts scored the most points.</li>
+            <li class="center-text"><span class="bold">Scoring System</span></li>
+            <li>Pacman consumes a dot or pill - 1 point</li>
+            <li>Pacman consumes a ghost - 2 points</li>
+            <li>Ghost kills Pacman - 15 points</li>
           </ul>
           <h5>Controls</h5>
           <ul class="instructions">

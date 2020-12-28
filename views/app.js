@@ -171,14 +171,24 @@ socket.on('gameOver', ({lobby, users, gameTime}) => {
   socket.emit('ackGameEnd', {id : socket.id});
   playerEnabled = -1; // Player movement disabled
   let ghostTotal = 0;
-  for(let i = 0; i < 3; i++)
-    ghostTotal += users[i].score;
+  let pacmanScore = 0;
+  users.forEach((user) => {
+    if (user.playerRole != 4)
+      ghostTotal += user.score;
+    else
+      pacmanScore = user.score;
+  });
 
     let img = document.createElement('img');
     img.setAttribute('class', 'characterGameOver')
-  if(users[3].score > ghostTotal) {
+  if(pacmanScore > ghostTotal) {
     img.src = "pacman.png";
-    winnerText.innerHTML = img.outerHTML + " PacMan";
+    winnerText.innerHTML = "PacMan " + img.outerHTML;
+    document.getElementById('scoreComparison').innerHTML = pacmanScore + "<span class='bold'>></span>" + ghostTotal;
+  }
+  else if (pacmanScore === ghostTotal)  {
+    winnerText.innerHTML = "TIE";
+    document.getElementById('scoreComparison').innerHTML = pacmanScore + "<span class='bold'>=</span>" + ghostTotal;
   }
   else {
     img.src = "red_ghost.png";
@@ -187,17 +197,18 @@ socket.on('gameOver', ({lobby, users, gameTime}) => {
     winnerText.innerHTML += img.outerHTML;
     img.src = "orange_ghost.png";
     winnerText.innerHTML += img.outerHTML;
+    document.getElementById('scoreComparison').innerHTML = pacmanScore + "<span class='bold'><</span>" + ghostTotal;
   }
 
   let playerScore = document.createElement('div');
   playerScore.setAttribute('id', 'playerScore');
   let playerInfo = document.createElement('div');
   playerInfo.setAttribute('id', 'playerInfo');
-  for(let i = 0; i < 4; i++){
+  users.forEach((user) => {
     let player = document.createElement('p');
     let score = document.createElement('p');
 
-    switch (users[i].playerRole)  {
+    switch (user.playerRole)  {
       case 1:
         img.src = "red_ghost.png";
         break;
@@ -211,14 +222,17 @@ socket.on('gameOver', ({lobby, users, gameTime}) => {
         img.src = "pacman.png";
         break;
     }
-    
-    player.innerHTML += img.outerHTML + " <span class='bold'>" + users[i].username + "</span>: ";
+    img.setAttribute('title', user.username);
+    if (user.playerRole != 4) {
+      player.style.backgroundColor = "#cfcfcf";
+      score.style.backgroundColor = "#cfcfcf";
+    }
 
+    player.innerHTML += img.outerHTML + " <span class=''>" + user.username + "</span>: ";
+    score.innerHTML = "<span class='score'>" + user.score + "</span>";
     playerInfo.appendChild(player);
-
-    score.innerHTML = "<span class='score'>" + users[i].score + "</span>";
     playerScore.appendChild(score);
-  }
+  });
   finalScoreboard.appendChild(playerInfo);
   finalScoreboard.appendChild(playerScore);
   // Hide user section and replace it with endgameboard

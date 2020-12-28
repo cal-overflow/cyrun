@@ -48,6 +48,16 @@ ul {
   margin: 0 auto;
 }
 
+#entranceForm p {
+  text-align: right;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  margin-top: 0px;
+  margin-bottom: 5px;
+  font-size: .7em;
+  line-height: .7em;
+}
+
 #submit {
   float: right;
 }
@@ -247,23 +257,34 @@ footer p  {
   min-width: 200px;
   width: 90%;
   max-width: 600px;
+  height: 175px;
   margin: 0 auto;
 }
 
 #playerInfo {
+  align-items: center;
   width: 85%;
   float: left;
 }
 
+#playerInfo p, #playerScore p {
+  align-items: center;
+  margin: 0px 0px 0px 0px;
+  height: 25%;
+  max-height: 100px;
+}
+
 #playerScore  {
+  height: 100%;
   width: 15%;
   float: left;
 }
 
 .score  {
-  margin-left: 10%;
-  width: 90%;
+  line-height: 3em;
 }
+
+
 
 @media only screen and (orientation: portrait)  {
 
