@@ -53,9 +53,12 @@ io.on('connection', socket => {
       if (usersInLobby[i].username === username) {
         socket.emit('message', 'There already exists a user in lobby: \"' + lobby + '\" with the name: \"' + username + '\"');
         entranceFailure = true;
-        console.log("Rejected player due to repeat of username.");
         break;
       }
+    }
+    if (username.length > 20)  {
+      socket.emit('message', 'Your username is too long.\nPlease enter a shorter username.');
+      entranceFailure = true;
     }
     if (entranceFailure) socket.disconnect();
     else {
@@ -422,6 +425,17 @@ io.on('connection', socket => {
   socket.on('lobbyMessage', ({username, message}) => {
     const user = getCurrentUser(socket.id);
     io.to(user.lobby).emit('lobbyMessage', {user: user, username: username, message: message});
+  });
+
+  // Development purposes only. DELETE THIS
+  // Simulate a game ending
+  socket.on('simGameOver', () =>  {
+    const user = getCurrentUser(socket.id);
+    socket.emit('gameOver', {
+      lobby: user.lobby,
+      users: getLobbyUsers(user.lobby),
+      gameTime: 1000
+    });
   });
 
   // Runs when client disconnects

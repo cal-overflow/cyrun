@@ -1,6 +1,7 @@
 const socket = io();
 
 const lobbyName = document.getElementById('gamelobby');
+const userSection = document.getElementById('users_lobby');
 const userList = document.getElementById('users');
 const leaveLobbyBtn = document.getElementById('leave');
 const chat = document.getElementById('chat');
@@ -12,7 +13,9 @@ const finalScoreboard = document.getElementById('finalScoreboard');
 const matchTime = document.getElementById('matchTime');
 const gameOver = document.getElementById('endgameboard');
 const playAgain = document.getElementById('playagain');
-gameOver.style.display = "none";
+const endgameSim = document.getElementById('endgame'); // Develoment purposes only. Delete this
+//gameOver.style.display = "block";
+//gameOver.style.display = "none";
 
 var localBoard;
 var playerEnabled = -1;
@@ -60,6 +63,11 @@ socket.emit('joinLobby', {username, lobby});
 playAgain.onclick = function() {
   location.reload();
 };
+
+// Develoment purposes only. Delete this
+function endgame()  {
+  socket.emit('simGameOver');
+}
 
 // Get lobby and Users
 socket.on('lobbyUsers', ({lobby, users}) => {
@@ -165,25 +173,58 @@ socket.on('gameOver', ({lobby, users, gameTime}) => {
   let ghostTotal = 0;
   for(let i = 0; i < 3; i++)
     ghostTotal += users[i].score;
-  if(users[3].score > ghostTotal)
-  winnerText.innerHTML = "Pacman wins!!!";
-  else
-  winnerText.innerHTML = "The ghosts win!!!";
 
-  for(let i = 0; i < 4; i ++){
-    let p = document.createElement('p');
-    if(users[i].playerRole == 1)
-      p.innerHTML = "Red Ghost Score: " + users[i].score;
-    else if(users[i].playerRole == 2)
-      p.innerHTML = "Blue Ghost Score: " + users[i].score;
-    else if(users[i].playerRole == 3)
-      p.innerHTML = "Orange Ghost Score: " + users[i].score;
-    else if(users[i].playerRole == 4)
-      p.innerHTML = "Pacman Score: " + users[i].score;
-    finalScoreboard.appendChild(p);
+    let img = document.createElement('img');
+    img.setAttribute('class', 'characterGameOver')
+  if(users[3].score > ghostTotal) {
+    img.src = "pacman.png";
+    winnerText.innerHTML = img.outerHTML + " PacMan";
   }
+  else {
+    img.src = "red_ghost.png";
+    winnerText.innerHTML = "Ghosts " + img.outerHTML;
+    img.src = "blue_ghost.png";
+    winnerText.innerHTML += img.outerHTML;
+    img.src = "orange_ghost.png";
+    winnerText.innerHTML += img.outerHTML;
+  }
+
+  let playerScore = document.createElement('div');
+  playerScore.setAttribute('id', 'playerScore');
+  let playerInfo = document.createElement('div');
+  playerInfo.setAttribute('id', 'playerInfo');
+  for(let i = 0; i < 4; i++){
+    let player = document.createElement('p');
+    let score = document.createElement('p');
+
+    switch (users[i].playerRole)  {
+      case 1:
+        img.src = "red_ghost.png";
+        break;
+      case 2:
+        img.src = "blue_ghost.png";
+        break;
+      case 3:
+        img.src = "orange_ghost.png";
+        break;
+      case 4:
+        img.src = "pacman.png";
+        break;
+    }
+    
+    player.innerHTML += img.outerHTML + " <span class='bold'>" + users[i].username + "</span>: ";
+
+    playerInfo.appendChild(player);
+
+    score.innerHTML = "<span class='score'>" + users[i].score + "</span>";
+    playerScore.appendChild(score);
+  }
+  finalScoreboard.appendChild(playerInfo);
+  finalScoreboard.appendChild(playerScore);
+  // Hide user section and replace it with endgameboard
+  userSection.style.display = "none";
   gameOver.style.display = "block";
-  matchTime.innerText = 'Match time: ' + gameTime + ' seconds';
+  matchTime.innerText = gameTime + ' seconds';
 });
 
 // Send message

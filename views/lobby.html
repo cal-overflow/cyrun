@@ -43,6 +43,7 @@
     <div class="col-lg-3">
       <h5 style="height: 24px"> </h5>
       <div id="users_lobby" class="bg-light mt-2 rounded p-2 border border-dark border-5">
+        <button id="endgame" onclick="endgame();">End Game</button>
         <h4>Users</h4>
         <div id="users">
           <div id="user1" class="userListItem"></div>
@@ -54,30 +55,29 @@
           <button type="submit" class="btn btn-primary" id="leave_game">Leave game</button>
         </form>
       </div>
-    </div>
-
-    <!--End game board-->
-    <div class="rounded border border-dark bg-light border-5 p-2" id="endgameboard" >
+      <div id="endgameboard" class="bg-light mt-2 rounded p-2 border border-dark border-5">
         <nav class="navbar navbar-light bg-dark">
           <a class="navbar-brand mx-auto">
-            <img height="48px" src="gameover.png">
+            <img src="gameover.png" id="gameOverPic">
           </a>
         </nav>
         <br><br>
-        <h4 id="winner"></h4>
+        <h4><span class="bold">Winner</span>: <span id="winner"></winner></h4>
         <br>
-        <h4><u>Scoreboard</u></h4><br>
-        <p2 id="finalScoreboard"></p2>
+        <h4 class="center-text">Scoreboard</h4>
+        <HR>
+        <div id="finalScoreboard"></div>
+
+        <h4 class="clear-both"><span class="bold">Match Time</span>: <span id="matchTime"></span></h4>
         <br>
-        <h4 id="matchTime"></h4>
-        <br>
-        <div style="text-align: center;">
+        <div class="center-text">
           <button id="playagain" class="btn btn-primary">Play again</button>
           <br><br>
           <form action="index.html" class="form-group">
             <button type="submit" class="btn btn-primary">Return to main menu</button>
           </form>
         </div>
+      </div>
     </div>
   </div>
 </div>
