@@ -2,15 +2,58 @@
   box-sizing: border-box;
 }
 
+#howToPlay h4, #howToPlay h5  {
+  text-align: center;
+}
+
+#howToPlay  {
+  border-width: 5px !important;
+}
+
 .instructions {
-  list-style-type: disc;
+  list-style-type: none; /* Remove bullets */
+  padding: 0; /* Remove padding */
+  margin: 0; /* Remove margins */
 }
 
 ul {
   list-style-type: none;
 }
-/* Create three unequal columns that floats next to each other */
 
+.bold {
+  font-weight: bold;
+}
+
+#characters {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.characterEntrance  {
+  width: 20%;
+  max-width: 72px;
+  height: auto;
+  filter: drop-shadow(1px 4px 1px #4d4d4d);
+}
+
+#entranceForm {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+#submit {
+  float: right;
+}
+
+footer p  {
+  width: 82%;
+  margin: 0 auto;
+  color: #FFFF00;
+}
+
+/* Create three unequal columns that floats next to each other */
 .border-5{
   border-width:5px !important;
 }
@@ -26,6 +69,7 @@ ul {
 }
 
 #chat {
+  word-break: break-all;
   overflow-y: scroll;
 }
 
@@ -36,10 +80,16 @@ ul {
     display: block;
   }
 
+  .exit-chat {
+    margin-left: 10px;
+    float: left;
+  }
+
   #chat_container {
     display: none;
     margin-top: 0px !important;
-    background-color: #808080;
+    padding-top: 10px;
+    background-color: #E6E6E6;
     position: fixed;
     width: 100vw;
     height: 100vh;
@@ -180,6 +230,7 @@ li{
 }
 
 #gamelobby, #users_lobby  {
+  word-break: break-all;
   text-align: center;
 }
 

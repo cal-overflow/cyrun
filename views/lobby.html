@@ -1,4 +1,4 @@
-<html>
+<html class="bg-dark">
 <head>
 <title>CyRun - Lobby</title>
 <!-- Meta tag below is important for safari on mobile devices (prevents zooming when a user focuses on a text box, etc.) -->
@@ -8,10 +8,10 @@
 <link rel="stylesheet" href="styles.css" />
 </head>
 
-<body style="background-color:#808080">
+<body style="background-color:#E6E6E6">
 <nav class="navbar navbar-light bg-dark">
   <a class="navbar-brand mx-auto">
-  <img id="level" height="32px" src="logo.png">
+  <img id="level" height="42px" src="logo.png">
   </a>
 </nav>
 
@@ -21,7 +21,7 @@
     <div class="col-lg-3 mb-4">
       <button onClick="toggleChat();" class="toggleChat btn btn-primary">Chat</button>
       <div id="chat_container" class="mt-2">
-        <button onClick="toggleChat();" class="toggleChat btn btn-primary">Back</button>
+        <button onClick="toggleChat();" class="toggleChat exit-chat btn btn-primary">Back</button>
         <h5 id="gamelobby"></h5>
         <div class="rounded border border-dark bg-light border-5 p-2" id="chat"></div>
         <div class="input-group mt-1">
@@ -83,7 +83,7 @@
 </div>
 <p></p><br><br>
 <footer class="footer text-center bg-dark">
-  <p style="color:#FFFF00"><span id="pregameMsg">Four players are needed for a game to begin<br /></span>
+  <p><span id="pregameMsg">Four players are needed for a game to begin<br /></span>
   Created by <a href="http://christianlisle.com" target="_blank">Christian Lisle</a>, <a href="https://github.com/goofyspoon?tab=repositories" target="_blank">Marissa Gustafson</a>, and Joe Dobosenski</p>
 </footer>
 <script>

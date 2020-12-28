@@ -1,27 +1,49 @@
-<html>
+<html class="bg-dark">
 <head>
 <title>CyRun</title>
+<!-- Meta tag below is important for safari on mobile devices (prevents zooming when a user focuses on a text box, etc.) -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.js"></script>
 <link rel="stylesheet" href="styles.css" />
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 </head>
-<body style="background-color:#808080">
+<body style="background-color:#E6E6E6">
   <nav class="navbar navbar-light bg-dark">
     <a class="navbar-brand mx-auto">
     <img id="level" height="80px" src="logo.png">
     </a>
   </nav>
-  <div class="container">
-    <div class="row p-2">
-      <div class=col-md-2></div>
-      <div class="col-md-8">
-        <div id="users_lobby" class="bg-light mt-2 rounded p-2">
-          <h5>How To Play:</h5>
-          <ul style="text-align:left;" display="list-item;" class="instructions">
-            <li>All Players: Use keypresses up, down, left, and right to move around the board.</li>
-            <li>PacMan: Collect resources to earn points. Grab a power pill to scare the ghosts and try to catch them to earn points.</li>
-            <li>Ghosts: Try to catch PacMan as many times as you can. Each time will earn you points.</li>
-            <li>When PacMan is caught, they will reappear at a random open spot on the board.</li>
+  <div class="container-fluid mt-5 mb-5">
+    <div class="row p-2 align-items-center">
+      <div class="col-md-1 order-md-12"></div>
+      <div class="col-md-4 order-md-11 mt-1 mb-1">
+        <p id="characters">
+           <img src="red_ghost.png" class="characterEntrance" />
+           <img src="orange_ghost.png" class="characterEntrance" />
+           <img src="blue_ghost.png" class="characterEntrance" />
+           <img src="pacman.png" class="characterEntrance" />
+          </p>
+        <form id="entranceForm" action="lobby.html" class="form-group">
+          <label for="username"><strong>Username</strong></label>
+          <input class="form-control" type="text" size="40" placeholder="Type your username" id="username_entrance" name="username" oninvalid="this.setCustomValidity('Please enter a username')" required><br />
+          <label for="room"><strong>Game Lobby</strong></label>
+          <input class="form-control" type="text" size="40" placeholder="Type the name of the game lobby" id="gamelobby_entrance" name="lobby" oninvalid="this.setCustomValidity('Please enter a game lobby')" required></br />
+          <button type="submit" id="submit" class="btn btn-primary">Join lobby</button>
+      </form>
+      </div>
+
+      <div class="col-md-4 order-md-2">
+        <div id="howToPlay" class="bg-light mt-2 rounded p-2 border border-dark border-5">
+          <h4>How To Play</h4>
+          <ul class="instructions">
+            <li><span class="bold">PacMan</span>: Collect resources to earn points. Grab a power pill to scare the ghosts and try to catch them to earn points.</li>
+            <li><span class="bold">Ghosts</span>: Try to catch PacMan as many times as you can. Each time will earn you points.</li>
+            <li>When PacMan is caught, they will safely respawn at a random location on the board.</li>
+          </ul>
+          <h5>Controls</h5>
+          <ul class="instructions">
+            <li><span class="bold">Desktop</span>: Press the arrow keys to change the direction of your player.</li>
+            <li><span class="bold">Mobile</span>: While your finger is on the game board, swipe in any direction to move your player.</li>
           </ul>
           <h5>Play with Friends:</h5>
           <ul style="text-align:left;" class="instructions">
@@ -30,27 +52,14 @@
           </ul>
         </div>
       </div>
-      <div class=col-md-2></div>
-    </div>
-    <div class="row p-2">
-      <div class="col-md-2"></div>
-      <div class="col-md-8">
-        <form action="lobby.html" class="form-group">
-          <label for="username"><strong>Username</strong></label>
-          <input class="form-control" type="text" size="40" placeholder="Type your username" id="username_entrance" name="username" required><br />
-          <label for="room"><strong>Game Lobby</strong></label>
-          <input class="form-control" type="text" size="40" placeholder="Type the name of the game lobby" id="gamelobby_entrance" name="lobby" required></br />
-          <button type="submit" id="submit" class="btn btn-primary">Join lobby</button>
-      </form>
-      </div>
-      <div class="col-md-2"></div>
+      <div class="col-md-2 order-md-1"></div>
 
     </div>
   </div>
   <footer class="footer text-center bg-dark">
-    <p style="color:#FFFF00">Join a lobby with three other players to begin a game!<br /></span>
+    <p>Join a lobby with three other players to begin a game!<br /></span>
     Created by <a href="http://christianlisle.com" target="_blank">Christian Lisle</a>, <a href="https://github.com/goofyspoon?tab=repositories" target="_blank">Marissa Gustafson</a>, and Joe Dobosenski</p>
-  </footer>
+</footer>
 
 <script src="/socket.io/socket.io.js"></script>
 </body>
