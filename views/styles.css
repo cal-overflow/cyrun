@@ -41,6 +41,10 @@ ul {
   filter: drop-shadow(1px 4px 1px #4d4d4d);
 }
 
+.ghostEntrance  {
+  animation: float 3s ease-out infinite, wave 6s linear infinite;
+}
+
 #entranceForm {
   width: 100%;
   max-width: 500px;
@@ -392,9 +396,9 @@ li{
 }
 
 @keyframes wave {
-  25% { transform: skew(4deg, 4deg); }
+  25% { transform: skew(3deg, 3deg); }
   50% { transform: skew(0deg, 0deg); }
-  75% { transform: skew(-4deg, -4deg); }
+  75% { transform: skew(-3deg, -3deg); }
   100% { transform: skew(0deg, 0deg); }
 }
 
