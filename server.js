@@ -259,11 +259,10 @@ io.on('connection', socket => {
     }
   }
 
-  // Handle player movement over a pill or dot. Returns false if two ghosts run into each other
+  // Handle player movement over a pill or dot. Returns false if a unresponsive collision occured (i.e. two ghosts run into each other)
   function checkCollisions(gameBoard, index, user) {
     // First check if player is colliding with nothing
     if (gameBoard[index] == 0 || (gameBoard[index] == 8 && user.playerRole != 4)) {
-      //setPrevPosType(user.id, gameBoard[index]);
       return true;
     } // Player collides with dot or pill
     else if (gameBoard[index] == 6 || gameBoard[index] == 2) {
@@ -291,6 +290,11 @@ io.on('connection', socket => {
     else if (gameBoard[index] == 3 || gameBoard[index] == 4 || gameBoard[index] == 5 || gameBoard[index] == 7) {
       if (getCurrentUser(user.id).playerRole == 4)  {
         if (getStatus(user.id) == 1)  {
+          getLobbyUsers(user.lobby).forEach(user => {
+            if (getIndex(user.id) == index && getPrevPosType(user.id) == 8) {
+              return false;
+          } // Return false in the event that pacman collides with a player that is in the ghost lair
+          });
           // Pacman collides with (eats) ghost
           incrementScore(user.id, 2);
           var pointUnderGhost = false;
@@ -431,7 +435,7 @@ io.on('connection', socket => {
   // Simulate a game ending
   socket.on('simGameOver', () =>  {
     const user = getCurrentUser(socket.id);
-    socket.emit('gameOver', {
+    io.to(user.lobby).emit('gameOver', {
       lobby: user.lobby,
       users: getLobbyUsers(user.lobby),
       gameTime: 1000

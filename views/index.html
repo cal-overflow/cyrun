@@ -22,7 +22,7 @@
            <img src="orange_ghost.png" class="characterEntrance" />
            <img src="blue_ghost.png" class="characterEntrance" />
            <img src="pacman.png" class="characterEntrance" />
-          </p>
+        </p>
         <form id="entranceForm" action="lobby.html" class="form-group">
           <label for="username"><strong>Username</strong></label>
           <input class="form-control" type="text" size="40" placeholder="Type your username" id="username_entrance" name="username" oninvalid="this.setCustomValidity('Please enter a username')" required><br />
@@ -36,26 +36,30 @@
       <div class="col-md-4 order-md-2">
         <div id="howToPlay" class="bg-light mt-2 rounded p-2 border border-dark border-5">
           <h4>How To Play</h4>
+          <HR>
           <ul class="instructions">
             <li><span class="bold">PacMan</span>: Collect resources to earn points. Grab a power pill to scare the ghosts and try to catch them to earn points.</li>
             <li><span class="bold">Ghosts</span>: Try to catch PacMan as many times as you can. Each time will earn you points.</li>
             <li>When PacMan is caught, they will safely respawn at a random location on the board.</li>
           </ul>
           <h4 id="scoring">Scoring</h4>
+          <HR>
           <ul class="instructions">
             <li><span class="bold">Who Wins</span>: Either PacMan or the three ghosts will become victorious. The scores of the three ghosts are combined after the game to determine if PacMan or the ghosts scored the most points.</li>
             <li class="center-text"><span class="bold">Scoring System</span></li>
-            <li>Pacman consumes a dot or pill - 1 point</li>
-            <li>Pacman consumes a ghost - 2 points</li>
-            <li>Ghost kills Pacman - 15 points</li>
+            <li>Pacman consumes a dot or pill - <span class="bold">1 point</span></li>
+            <li>Pacman consumes a ghost - <span class="bold">2 points</span></li>
+            <li>Ghost kills Pacman - <span class="bold">15 points</span></li>
           </ul>
-          <h5>Controls</h5>
+          <h4>Controls</h4>
+          <HR>
           <ul class="instructions">
             <li><span class="bold">Desktop</span>: Press the arrow keys to change the direction of your player.</li>
             <li><span class="bold">Mobile</span>: While your finger is on the game board, swipe in any direction to move your player.</li>
           </ul>
-          <h5>Play with Friends:</h5>
-          <ul style="text-align:left;" class="instructions">
+          <h4>Play with Friends</h4>
+          <HR>
+          <ul class="instructions">
             <li>Either join an existing lobby or start a new one by entering the name below.</li>
             <li>Share the lobby name to play against friends.</li>
           </ul>

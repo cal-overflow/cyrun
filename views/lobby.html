@@ -30,7 +30,6 @@
             <button type="button" id="send" class="btn btn-primary">Send</button>
           </div>
         </div>
-
       </div>
     </div>
 
@@ -38,12 +37,13 @@
     <div class="col-lg-6 text-center" id="wrapper">
       <h4 id="countdown"></h4>
       <div id="game"></div>
+      <button id="endgame" onclick="endgame();">End Game</button>
     </div>
+
+
     <!-- Right Column -->
-    <div class="col-lg-3">
-      <h5 style="height: 24px"> </h5>
+    <div class="col-lg-3 pt-38">
       <div id="users_lobby" class="bg-light mt-2 rounded p-2 border border-dark border-5">
-        <button id="endgame" onclick="endgame();">End Game</button>
         <h4>Users</h4>
         <div id="users">
           <div id="user1" class="userListItem"></div>
@@ -61,17 +61,14 @@
             <img src="gameover.png" id="gameOverPic">
           </a>
         </nav>
-        <br><br>
-        <h4><span class="bold">Winner</span>: <span id="winner"></winner></h4>
+        <h4 class="clear-both pt-20"><span class="bold">Match Time</span>: <span id="matchTime"></span></h4>
         <br>
         <h4 class="center-text">Scoreboard</h4>
         <HR>
         <div id="finalScoreboard"></div>
         <HR class="clear-both">
-        <h4 id="scoreComparison" class="center-text"></h4>
+        <h4><span class="bold">Winner</span>: <span id="winner"></winner></h4>
         <HR>
-        <h4 class="clear-both"><span class="bold">Match Time</span>: <span id="matchTime"></span></h4>
-        <br>
         <div class="center-text">
           <button id="playagain" class="btn btn-primary">Play again</button>
           <br><br>

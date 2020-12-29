@@ -21,12 +21,11 @@ ul {
 }
 
 .bold { font-weight: bold; }
-
 .underline  { text-decoration: underline; }
-
 .center-text  { text-align: center; }
-
 .clear-both { clear: both; }
+.pt-20 { padding-top: 20px; }
+.pt-38  { padding-top: 38px; }
 
 
 #characters {
@@ -84,6 +83,7 @@ footer p  {
   position: relative;
 }
 
+
 #chat {
   word-break: break-all;
   overflow-y: scroll;
@@ -93,15 +93,24 @@ footer p  {
   html, body  {
     overflow-x: hidden;
   }
-  .toggleChat, #gamelobby, #countdown, #leave_game {
+  .toggleChat, #by, #countdown, #leave_game {
     font-size: 2em;
     margin: 10px auto 10px auto;
     display: block;
   }
 
-  #users_lobby  {
-    min-height: 600px;
-    height: 650px;;
+  @media only screen and (min-width: 951px) {
+    #users_lobby  {
+      min-height: 620px;
+      height: 650px;
+    }
+  }
+
+  @media only screen and (max-width: 950px) {
+    #users_lobby  {
+      min-height: 500px;
+      height: 550px;
+    }
   }
 
   .exit-chat {
@@ -145,12 +154,16 @@ footer p  {
 .userListItem {
   padding-top: 10px;
   padding-bottom: 10px;
-  width: 50%;
+  width: 48%;
   min-height: 50px;
-  float: left;
   height: auto;
   text-align: center;
+  margin: 0 auto;
 }
+
+#user1, #user3  { float: left; }
+#user2, #user4  { float: right; }
+
 .userListItem p {
   word-wrap: break-word;
   width: 90%;
@@ -168,18 +181,27 @@ footer p  {
 
 .userListItem img {
   width: auto;
-  height: 30%;
+  height: 24%;
+  max-height: 100px;
 }
 
 @media only screen and (orientation: portrait) and (min-width: 1000px)  {
   .userListItem {
     width: 100%;
-
   }
     .userListItem img {
       height: 50px;
       width: auto;
     }
+}
+
+@media only screen and (orientation: landscape) {
+  .userListItem img {
+    width: 90%;
+    max-width: 90px;
+    height: auto;
+    max-height: 120px;
+  }
 }
 
 .activePlayerName {
@@ -257,7 +279,7 @@ footer p  {
   min-width: 200px;
   width: 90%;
   max-width: 600px;
-  height: 175px;
+  height: 220px;
   margin: 0 auto;
 }
 
@@ -270,7 +292,7 @@ footer p  {
 #playerInfo p, #playerScore p {
   align-items: center;
   margin: 0px 0px 0px 0px;
-  height: 25%;
+  height: 20%;
   max-height: 100px;
 }
 
@@ -284,32 +306,17 @@ footer p  {
   line-height: 3em;
 }
 
-
-
-@media only screen and (orientation: portrait)  {
-
-}
-
-/*#score {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 200px;
-  height: 50px;
-  border: 5px darkblue solid;
-  background: black;
-  margin-top: 20px;
-  color: white;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 2rem;
-}*/
-
 li{
   margin: 20px 0;
 }
 
 #start-button {
   margin-top: 20px;
+}
+
+#gamelobby  {
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 #gamelobby, #users_lobby  {
@@ -350,63 +357,56 @@ li{
 }
 
 .ghost {
-  position: relative;
-  border-radius: 10px 10px 2px 2px;
-  border: none;
-}
-
-.ghost::before {
-  content: '';
-  display: block;
-  position: absolute;
-  width: 3px;
-  height: 3px;
-  background: black;
-  border-radius: 50%;
-  left: 3px;
-  top: 5px;
-  border: 2px solid white;
-}
-
-.ghost::after {
-  content: '';
-  display: block;
-  position: absolute;
-  width: 3px;
-  height: 3px;
-  background: black;
-  border-radius: 50%;
-  right: 3px;
-  top: 5px;
-  border: 2px solid white;
-}
-
-.scared {
-  background: blue !important;
+  width: 100%;
+  height: 100%;
 }
 
 .ghost1 {
-  /*background: red;*/
-  background-color: black;
   background-image: url('red_ghost.png');
   background-size: cover;
-  filter: drop-shadow(1px 4px 1px #4d4d4d);
+  animation: float 3s ease-out infinite, wave 6s linear infinite;
+  filter: drop-shadow(0px 1px 2px #FF0000);
 }
 
 .ghost2 {
-  /*background: pink;*/
-  background-color: black;
   background-image: url('blue_ghost.png');
   background-size: cover;
-  filter: drop-shadow(1px 4px 1px #4d4d4d);
+  animation: float 3s ease-out infinite, wave 6s linear infinite;
+  filter: drop-shadow(0px 1px 2px #00F7FF);
 }
 
 .ghost3 {
-  /*background: cyan;*/
-  background-color: black;
   background-image: url('orange_ghost.png');
   background-size: cover;
-  filter: drop-shadow(1px 4px 1px #4d4d4d);
+  animation: float 3s ease-out infinite, wave 6s linear infinite;
+  filter: drop-shadow(0px 1px 2px #FCB445);
+}
+
+.edible_ghost {
+  filter: invert(1) grayscale(0.25);
+  animation: flash 2s ease-out forwards infinite;
+}
+
+@keyframes float  {
+  50% { transform: translate(0, -3px); }
+}
+
+@keyframes wave {
+  25% { transform: skew(4deg, 4deg); }
+  50% { transform: skew(0deg, 0deg); }
+  75% { transform: skew(-4deg, -4deg); }
+  100% { transform: skew(0deg, 0deg); }
+}
+
+
+@keyframes flash  {
+  5% { filter: invert(1); }
+  10% { filter: invert(.75); }
+  25% { filter: invert(.5); }
+  50% { filter: invert(0); }
+  75% { filter: invert(.5); }
+  90% { filter: invert(.75); }
+  95% { filter: invert(1); }
 }
 
 .pacman {
@@ -436,5 +436,29 @@ li{
       20px 20px,
       0 20px
     );
+  }
+}
+
+/*GameBoard resizing*/
+@media only screen and (orientation: landscape) {
+  @media only screen and (min-width: 1000px) and (max-width: 1500px)  {
+    #game {
+      transform: scale(1.10) translateY(25px);
+    }
+  }
+  @media only screen and (min-width: 1501px) and (max-width: 1800px)  {
+    #game {
+      transform: scale(1.15) translateY(30px);
+    }
+  }
+  @media only screen and (min-width: 1801px) and (max-width: 2000px)  {
+    #game {
+      transform: scale(1.2) translateY(40px);
+    }
+  }
+  @media only screen and (min-width: 2001px)  {
+    #game {
+      transform: scale(1.25) translateY(45px);
+    }
   }
 }

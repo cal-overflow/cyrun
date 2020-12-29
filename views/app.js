@@ -14,14 +14,12 @@ const matchTime = document.getElementById('matchTime');
 const gameOver = document.getElementById('endgameboard');
 const playAgain = document.getElementById('playagain');
 const endgameSim = document.getElementById('endgame'); // Develoment purposes only. Delete this
-//gameOver.style.display = "block";
-//gameOver.style.display = "none";
 
 var localBoard;
 var playerEnabled = -1;
 
-const GRID_SIZE = 20; // Grid size never changes
-const CELL_SIZE = 20; // CELL SIZE increases on mobile
+const GRID_SIZE = 20; // Grid size never changes (cells make up grid)
+var CELL_SIZE = 20; // This is never changed. The gameBoard is scaled up to fit larger screens in the stylesheet (CSS)
 
 const SQUARE_TYPE = {
   BLANK: 'blank',
@@ -104,34 +102,44 @@ function drawGameBoard(users, gameBoard){
     board.innerHTML = '';
     // First set correct amount of columns based on Grid Size and Cell Size
     board.style.cssText = `grid-template-columns: repeat(${GRID_SIZE}, ${CELL_SIZE}px);`;
-    //console.log(gameBoard); // Development purposes only
+    var cells = 0;
     gameBoard.forEach((square) => {
       const div = document.createElement('div');
-      div.classList.add('square', SQUARE_LIST[square]);
       div.style.cssText = `width: ${CELL_SIZE}px; height: ${CELL_SIZE}px;`;
-      if (SQUARE_LIST[square] == SQUARE_TYPE.PACMAN)  { // customize pacman
+
+      // First determine if we are creating a ghost cell. If we are, we want to see if it needs to be flashing or not.
+      // We then create a div inside of our cell so that we can have a ghost seperate from the background element (the background could be light grey or black)
+      if (SQUARE_LIST[square] == SQUARE_TYPE.GHOST1 || SQUARE_LIST[square] == SQUARE_TYPE.GHOST2 || SQUARE_LIST[square] == SQUARE_TYPE.GHOST3)  {
+        var ghost = document.createElement('div');
+        ghost.classList.add('square', SQUARE_LIST[square], 'ghost');
         users.forEach(user => {
-          if (user.playerRole == 4 && user.direction != 0) { // Pacman rotates depending on direction
-            var rotation = 0;
-            if (user.direction == -1) rotation = 180; // facing left
-            else if (user.direction == 20) rotation = 90; // facing up
-            else if (user.direction == -20) rotation = 270; // facing down
-            div.style.transform = "rotate(" + rotation + "deg)";
-          }
+          if (user.prevPosType == 8 && user.index == cells) div.classList.add('square', 'lair'); // Correctly set background color (this took forever to implement, but I got it done!)
+          if (user.status == 1) ghost.classList.add('edible_ghost');
         });
-      } // Customize the three ghosts: (make the ghosts flash if pacman ate pill)
-      else if (SQUARE_LIST[square] == SQUARE_TYPE.GHOST1 || SQUARE_LIST[square] == SQUARE_TYPE.GHOST2 || SQUARE_LIST[square] == SQUARE_TYPE.GHOST3)  {
-        users.forEach(user => {
-          if (user.status == 1) {
-            div.style.backgroundImage = "url('edible_ghost.png')";
-            div.style.filter = "drop-shadow(1px 4px 1px #616161);"
-          }
-        });
+
+
+        div.appendChild(ghost); // This allows for us to have the ghost seperate from the background (this is important for a clean appearance)
       }
-      //div.innerText = square; // Development purposes only. DELETE THIS
-      div.setAttribute("class", SQUARE_LIST[square]);
+      else {
+        // Add class to current square (this is here because it is not the same for ghost cells)
+        div.classList.add('square', SQUARE_LIST[square]);
+        // Customize PacMan if that is the current square
+        if (SQUARE_LIST[square] == SQUARE_TYPE.PACMAN)  { // customize pacman
+          users.forEach(user => {
+            if (user.playerRole == 4 && user.direction != 0) { // Pacman rotates depending on direction
+              var rotation = 0;
+              if (user.direction == -1) rotation = 180; // facing left
+              else if (user.direction == 20) rotation = 90; // facing up
+              else if (user.direction == -20) rotation = 270; // facing down
+              div.style.transform = "rotate(" + rotation + "deg)";
+            }
+          });
+        }
+      }
+
       board.appendChild(div);
       grid.push(div);
+      cells++;
     });
     // console.log(gameBoard); // Develoment purposes only. Delete this
 }
@@ -184,11 +192,9 @@ socket.on('gameOver', ({lobby, users, gameTime}) => {
   if(pacmanScore > ghostTotal) {
     img.src = "pacman.png";
     winnerText.innerHTML = "PacMan " + img.outerHTML;
-    document.getElementById('scoreComparison').innerHTML = pacmanScore + "<span class='bold'>></span>" + ghostTotal;
   }
   else if (pacmanScore === ghostTotal)  {
-    winnerText.innerHTML = "TIE";
-    document.getElementById('scoreComparison').innerHTML = pacmanScore + "<span class='bold'>=</span>" + ghostTotal;
+    winnerText.innerHTML = "Draw";
   }
   else {
     img.src = "red_ghost.png";
@@ -197,13 +203,12 @@ socket.on('gameOver', ({lobby, users, gameTime}) => {
     winnerText.innerHTML += img.outerHTML;
     img.src = "orange_ghost.png";
     winnerText.innerHTML += img.outerHTML;
-    document.getElementById('scoreComparison').innerHTML = pacmanScore + "<span class='bold'><</span>" + ghostTotal;
   }
 
-  let playerScore = document.createElement('div');
-  playerScore.setAttribute('id', 'playerScore');
   let playerInfo = document.createElement('div');
   playerInfo.setAttribute('id', 'playerInfo');
+  let playerScore = document.createElement('div');
+  playerScore.setAttribute('id', 'playerScore');
   users.forEach((user) => {
     let player = document.createElement('p');
     let score = document.createElement('p');
@@ -228,13 +233,22 @@ socket.on('gameOver', ({lobby, users, gameTime}) => {
       score.style.backgroundColor = "#cfcfcf";
     }
 
-    player.innerHTML += img.outerHTML + " <span class=''>" + user.username + "</span>: ";
+    player.innerHTML += img.outerHTML + user.username + ": ";
     score.innerHTML = "<span class='score'>" + user.score + "</span>";
     playerInfo.appendChild(player);
     playerScore.appendChild(score);
   });
+  // Create a Ghost Total score section at the bottom of the scoreboard
+  let ghostTotalPlayer = document.createElement('p');
+  ghostTotalPlayer.innerHTML = "Ghost Total";
+  playerInfo.appendChild(ghostTotalPlayer);
+  let ghostTotalScore = document.createElement('p');
+  ghostTotalScore.innerHTML = "<span class='score'>" + ghostTotal + "</span>";
+  playerScore.appendChild(ghostTotalScore);
+
   finalScoreboard.appendChild(playerInfo);
   finalScoreboard.appendChild(playerScore);
+
   // Hide user section and replace it with endgameboard
   userSection.style.display = "none";
   gameOver.style.display = "block";
@@ -328,8 +342,10 @@ function startCountDown(){
       countdown.innerHTML = "GO!";
       playerEnabled = 1; // Enable player so that they can send direction update to server
     }
-    else
+    else if (second == -10)  {
+      countdown.style.visibility = "hidden";
       clearInterval(interval);
+    }
     second--;
   }, 1000);
 }
