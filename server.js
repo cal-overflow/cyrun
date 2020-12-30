@@ -46,25 +46,19 @@ io.on('connection', socket => {
 
   socket.on('joinLobby', ({username, lobby}) => {
     // Check the lobby to ensure there will not be two users with the same name or there are already 4 users in the lobby
-    var entranceFailure = false;
     let usersInLobby = getLobbyUsers(lobby);
-    if (usersInLobby.length >= 4)	{
-      console.log("Rejected player because lobby is full.");
-      socket.emit('message', 'The lobby, ' + lobby + ', is full')
-      entranceFailure = true;
-    }
-    for (var i = 0; i < usersInLobby.length && !(entranceFailure); i++) {
+
+    for (var i = 0; i < usersInLobby.length; i++) {
       if (usersInLobby[i].username === username) {
-        socket.emit('message', 'There already exists a user in lobby: \"' + lobby + '\" with the name: \"' + username + '\"');
-        entranceFailure = true;
+        socket.emit('failedEntrance', 'duplicateName');
+        socket.disconnect();
         break;
       }
     }
-    if (username.length > 20)  {
-      socket.emit('message', 'Your username is too long.\nPlease enter a shorter username.');
-      entranceFailure = true;
+    if (usersInLobby.length >= 4)	{
+      socket.emit('failedEntrance', 'fullLobby')
+      socket.disconnect();
     }
-    if (entranceFailure) socket.disconnect();
     else {
       const user = userJoin(socket.id, username, lobby);
       socket.join(user.lobby);
@@ -90,9 +84,9 @@ io.on('connection', socket => {
         beginGame(user, users);
       }
 
-      // Update the active lobbies list (on index page)
-      io.emit('lobbyList', (io.sockets.adapter.rooms));
-    } // end else statement
+        // Update the active lobbies list (on index page)
+        io.emit('lobbyList', (io.sockets.adapter.rooms));
+      }
   });
 
   // Choose a random level (1 or 2) and store a copy of that level as gameBoard

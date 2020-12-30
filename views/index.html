@@ -23,12 +23,13 @@
            <img src="blue_ghost.png" class="characterEntrance ghost2" />
            <img src="pacman.png" class="characterEntrance" />
         </p>
-        <form id="entranceForm" action="lobby.html" class="form-group">
+        <form id="entranceForm" action="lobby.html" class="form-group" onsubmit="return checkEntrance();">
           <label for="username"><strong>Username</strong></label>
           <input class="form-control" type="text" size="40" placeholder="Type your username" id="username_entrance" name="username" oninvalid="this.setCustomValidity('Please enter a username')" oninput="this.setCustomValidity('')" required /><br />
           <p>20 characters or less</p>
           <label for="room"><strong>Game Lobby</strong></label>
           <input class="form-control" type="text" size="40" placeholder="Type the name of the game lobby" id="gamelobby_entrance" name="lobby" oninvalid="this.setCustomValidity('Please enter a game lobby')" oninput="this.setCustomValidity('')" required /></br />
+          <div id="entranceFailureFeedback"></div>
           <button type="submit" id="submitBtn" class="btn btn-primary">Join lobby</button>
       </form>
       <div id="lobbyListContainer" class="bg-light rounded border border-dark border-5 p-2">
@@ -46,6 +47,12 @@
             <li><span class="bold">Ghosts</span>: Try to catch PacMan as many times as you can. Each time will earn you points.</li>
             <li>When PacMan is caught, he will safely respawn at a random location on the board.</li>
           </ul>
+          <h4>Controls</h4>
+          <HR>
+          <ul class="instructions">
+            <li><span class="bold">Desktop</span>: Press the arrow keys to change the direction of your player.</li>
+            <li><span class="bold">Mobile</span>: While your finger is on the game board, swipe in any direction to move your player.</li>
+          </ul>
           <h4 id="scoring">Scoring</h4>
           <HR>
           <ul class="instructions">
@@ -54,12 +61,6 @@
             <li>Pacman consumes a dot or pill - <span class="bold">1 point</span></li>
             <li>Pacman consumes a ghost - <span class="bold">2 points</span></li>
             <li>Ghost kills Pacman - <span class="bold">15 points</span></li>
-          </ul>
-          <h4>Controls</h4>
-          <HR>
-          <ul class="instructions">
-            <li><span class="bold">Desktop</span>: Press the arrow keys to change the direction of your player.</li>
-            <li><span class="bold">Mobile</span>: While your finger is on the game board, swipe in any direction to move your player.</li>
           </ul>
           <h4>Play with Friends</h4>
           <HR>
@@ -77,8 +78,9 @@
     <p>Join a lobby with three other players to begin a game!<br /></span>
     Created by <a href="http://christianlisle.com" target="_blank">Christian Lisle</a>, <a href="https://github.com/goofyspoon?tab=repositories" target="_blank">Marissa Gustafson</a>, and Joe Dobosenski</p>
 </footer>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.9.4/qs.min.js" integrity="sha512-BHtomM5XDcUy7tDNcrcX1Eh0RogdWiMdXl3wJcKB3PFekXb3l5aDzymaTher61u6vEZySnoC/SAj2Y/p918Y3w==" crossorigin="anonymous"></script>
 <script src="/socket.io/socket.io.js"></script>
-<script src="./retrieveLobbies.js"></script>
+<script src="./entrance.js"></script>
+<script>failureFeedback();</script>
 </body>
 </html>

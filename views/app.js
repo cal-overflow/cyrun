@@ -3,7 +3,7 @@ const socket = io();
 const lobbyName = document.getElementById('gamelobby');
 const userSection = document.getElementById('users_lobby');
 const userList = document.getElementById('users');
-const leaveLobbyBtn = document.getElementById('leave');
+const leaveLobby = document.getElementById('leave_game');
 const chat = document.getElementById('chat');
 const chatbox = document.getElementById('chatbox')
 const sendChat = document.getElementById('send');
@@ -56,6 +56,11 @@ const thisUsername = {username, lobby}.username;
 
 // Join lobby
 socket.emit('joinLobby', {username, lobby});
+
+// Handle a failed Join Lobby attempt (Take the user back to the index page with a reason for failing entrance)
+socket.on('failedEntrance', (reason) =>  {
+  window.location.href="/index.html?reason=" + reason;
+});
 
 //Reloads the page once play again button is closed which preserves the lobby and username
 playAgain.onclick = function() {
@@ -263,6 +268,12 @@ sendChat.addEventListener('click', (e) => {
     chatbox.value = '';
     chatbox.focus();
   }
+});
+
+// Leave lobby
+leaveLobby.addEventListener('click', (e) =>  {
+  e.preventDefault();
+  // TODO
 });
 
 // Send message if user hits 'enter' key
