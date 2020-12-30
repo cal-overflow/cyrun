@@ -40,6 +40,10 @@ app.use(express.static('views')); // Set static folder to /views
 
 // Run when client connects
 io.on('connection', socket => {
+  socket.on('retrieveLobbies', () =>  {
+    socket.emit('lobbyList', (io.sockets.adapter.rooms));
+  });
+
   socket.on('joinLobby', ({username, lobby}) => {
     // Check the lobby to ensure there will not be two users with the same name or there are already 4 users in the lobby
     var entranceFailure = false;
@@ -85,6 +89,9 @@ io.on('connection', socket => {
         let users = getLobbyUsers(user.lobby);
         beginGame(user, users);
       }
+
+      // Update the active lobbies list (on index page)
+      io.emit('lobbyList', (io.sockets.adapter.rooms));
     } // end else statement
   });
 
@@ -232,7 +239,6 @@ io.on('connection', socket => {
           }
         }
 
-
       if (update) {
         gameBoard[getPrevIndex(user.id)] = getPrevPosType(user.id);
         setPrevPosType(user.id, gameBoard[getIndex(user.id)]);
@@ -283,18 +289,19 @@ io.on('connection', socket => {
         return true;
       }
       else { // Ghost moved over pill/dot
-        //setPrevPosType(user.id, gameBoard[index]);
         return true;
       }
     } // Player collides with another player
     else if (gameBoard[index] == 3 || gameBoard[index] == 4 || gameBoard[index] == 5 || gameBoard[index] == 7) {
       if (getCurrentUser(user.id).playerRole == 4)  {
         if (getStatus(user.id) == 1)  {
-          getLobbyUsers(user.lobby).forEach(user => {
-            if (getIndex(user.id) == index && getPrevPosType(user.id) == 8) {
+          // Check to see if the ghost that PacMan is colliding with is in a ghost Lair spot. If they are then PacMan will stop moving (return false)
+          for (let i = 0; i < getLobbyUsers(user.lobby).length; i++)  {
+            if (index == getIndex(getLobbyUsers(user.lobby)[i].id) && getPrevPosType(getLobbyUsers(user.lobby)[i].id) == 8)  {
               return false;
-          } // Return false in the event that pacman collides with a player that is in the ghost lair
-          });
+            }
+          }
+
           // Pacman collides with (eats) ghost
           incrementScore(user.id, 2);
           var pointUnderGhost = false;
@@ -456,6 +463,9 @@ io.on('connection', socket => {
         users: getLobbyUsers(user.lobby)
       });
     }
+
+    // Update the active lobbies list (on index page)
+    io.emit('lobbyList', (io.sockets.adapter.rooms));
   });// Do not put anything below socket.on(disconnect)
 });
 

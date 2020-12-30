@@ -23,9 +23,12 @@ ul {
 .bold { font-weight: bold; }
 .underline  { text-decoration: underline; }
 .center-text  { text-align: center; }
+.float-right  { float: right; }
 .clear-both { clear: both; }
 .pt-20 { padding-top: 20px; }
+.mt-20  { margin-top: 20px; }
 .pt-38  { padding-top: 38px; }
+.pointer-cursor { cursor: pointer; }
 
 
 #characters {
@@ -61,8 +64,58 @@ ul {
   line-height: .7em;
 }
 
-#submit {
+#submitBtn {
   float: right;
+  margin-bottom: 20px;
+}
+
+#lobbyListContainer  {
+  clear: both;
+  width: 80%;
+  max-width: 350px;
+  min-height: 150px;
+  max-height: 200px;
+  overflow: hidden;
+  margin: 0 auto;
+  position: relative;
+  display: flex;
+  padding-bottom: 0px !important;
+}
+
+#lobbyLabelContainer  {
+  z-index: 100;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  text-align: center;
+  background-color:
+}
+
+#lobbyLabelContainer label  {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+#lobbyLabelContainer HR {
+  margin: 0 0 0 0;
+  padding: 0 0 0 0;
+}
+
+#lobbyList  {
+  overflow-y: scroll !important;
+  margin-top: 33px;
+  width: 100%;
+  margin-bottom: 0px;
+}
+
+#lobbyList p  {
+  width: 100%;
+  float: left;
+}
+#lobbyList p, #lobbyList span {
+  padding-left: 5%;
+  padding-right: 5%;
 }
 
 footer p  {

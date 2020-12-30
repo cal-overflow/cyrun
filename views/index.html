@@ -25,12 +25,16 @@
         </p>
         <form id="entranceForm" action="lobby.html" class="form-group">
           <label for="username"><strong>Username</strong></label>
-          <input class="form-control" type="text" size="40" placeholder="Type your username" id="username_entrance" name="username" oninvalid="this.setCustomValidity('Please enter a username')" required><br />
+          <input class="form-control" type="text" size="40" placeholder="Type your username" id="username_entrance" name="username" oninvalid="this.setCustomValidity('Please enter a username')" oninput="this.setCustomValidity('')" required /><br />
           <p>20 characters or less</p>
           <label for="room"><strong>Game Lobby</strong></label>
-          <input class="form-control" type="text" size="40" placeholder="Type the name of the game lobby" id="gamelobby_entrance" name="lobby" oninvalid="this.setCustomValidity('Please enter a game lobby')" required></br />
-          <button type="submit" id="submit" class="btn btn-primary">Join lobby</button>
+          <input class="form-control" type="text" size="40" placeholder="Type the name of the game lobby" id="gamelobby_entrance" name="lobby" oninvalid="this.setCustomValidity('Please enter a game lobby')" oninput="this.setCustomValidity('')" required /></br />
+          <button type="submit" id="submitBtn" class="btn btn-primary">Join lobby</button>
       </form>
+      <div id="lobbyListContainer" class="bg-light rounded border border-dark border-5 p-2">
+      <div id="lobbyLabelContainer" class="bg-light"><label class='center-text'><strong>Active Lobbies</strong></label><HR SIZE="1"></div>
+        <div id="lobbyList"></div>
+      </div>
       </div>
 
       <div class="col-md-4 order-md-2">
@@ -40,7 +44,7 @@
           <ul class="instructions">
             <li><span class="bold">PacMan</span>: Collect resources to earn points. Grab a power pill to scare the ghosts and try to catch them to earn points.</li>
             <li><span class="bold">Ghosts</span>: Try to catch PacMan as many times as you can. Each time will earn you points.</li>
-            <li>When PacMan is caught, they will safely respawn at a random location on the board.</li>
+            <li>When PacMan is caught, he will safely respawn at a random location on the board.</li>
           </ul>
           <h4 id="scoring">Scoring</h4>
           <HR>
@@ -60,7 +64,7 @@
           <h4>Play with Friends</h4>
           <HR>
           <ul class="instructions">
-            <li>Either join an existing lobby or start a new one by entering the name below.</li>
+            <li>Either join an existing lobby or start a new one by entering the lobby name.</li>
             <li>Share the lobby name to play against friends.</li>
           </ul>
         </div>
@@ -75,5 +79,6 @@
 </footer>
 
 <script src="/socket.io/socket.io.js"></script>
+<script src="./retrieveLobbies.js"></script>
 </body>
 </html>
