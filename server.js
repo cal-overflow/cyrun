@@ -66,6 +66,10 @@ io.on('connection', socket => {
       socket.join(user.lobby);
       setPlayerNum(user.id, getLobbyUsers(lobby).length); // Users are only assigned a playerNum so they can be displayed on user list before game starts
 
+      // This is for testing purposes only.
+      // This is to test and see if the heroku service restarts after the application crashes.
+      process.exit; // Development purposes only. DELETE THIS
+
       // Welcome current user to lobby
       socket.emit('message', 'Welcome to CyRun lobby ' + user.lobby);
       console.log('Lobby: ' + user.lobby + ' | ' + user.username + ' has joined'); // Development purposes only. DELETE THIS
