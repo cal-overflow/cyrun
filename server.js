@@ -47,19 +47,21 @@ io.on('connection', socket => {
   socket.on('joinLobby', ({username, lobby}) => {
     // Check the lobby to ensure there will not be two users with the same name or there are already 4 users in the lobby
     let usersInLobby = getLobbyUsers(lobby);
-
+    let failedEntrance = false;
     for (var i = 0; i < usersInLobby.length; i++) {
       if (usersInLobby[i].username === username) {
         socket.emit('failedEntrance', 'duplicateName');
         socket.disconnect();
+        failedEntrance = true;
         break;
       }
     }
     if (usersInLobby.length >= 4)	{
-      socket.emit('failedEntrance', 'fullLobby')
+      socket.emit('failedEntrance', 'fullLobby');
+      failedEntrance = true;
       socket.disconnect();
     }
-    else {
+    else if (!failedEntrance) {
       const user = userJoin(socket.id, username, lobby);
       socket.join(user.lobby);
       setPlayerNum(user.id, getLobbyUsers(lobby).length); // Users are only assigned a playerNum so they can be displayed on user list before game starts
