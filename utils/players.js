@@ -2,7 +2,7 @@ const players = [];
 
 //There are always 4 players. If there are not even 4 players, the remaining players will be controlled by bots (CPU)
 function playerJoin(name, lobby, playerRole)  {
-  console.log('player ' + name + ' joined lobby' + lobby + ' as playerRole: ' + playerRole);
+  console.log('player ' + name + ' joined lobby ' + lobby + ' as role: ' + playerRole); // todo: delete this
   var player = {
     name,
     lobby,
@@ -23,13 +23,13 @@ function playerJoin(name, lobby, playerRole)  {
 
 // Get a player given the lobby and player role
 function getPlayer(lobby, playerRole) {
-  return players.find(player.lobby === lobby && player.playerRole === playerRole);
+  return players.find(player => player.lobby === lobby && player.playerRole === playerRole);
 }
 
-// Player (player) leaves a game. A bot will be assigned to the player/character
+// Player (player) leaves a game. This is more than likely not going to be used, since when a user leaves, it is re-assigned to a CPU
 function playerLeave(lobby, playerRole) {
   const index = players.findIndex(player => player.lobby === lobby && player.playerRole === playerRole);
-
+  console.log('removing player' + players[index].name);
   if (index !== -1) {
     return players.splice(index, 1)[0];
   }
@@ -38,6 +38,17 @@ function playerLeave(lobby, playerRole) {
 // Get the players in a game (lobby)
 function getLobbyPlayers(lobby)  {
   return players.filter(player => player.lobby === lobby);
+}
+
+// Set the name of a player
+function setPlayerName(setName, lobby, playerRole) {
+  let index = players.findIndex(player => player.lobby === lobby && player.playerRole === playerRole);
+  players[index].name = setName;
+}
+
+// Get a player's name
+function getPlayerName(lobby, playerRole) {
+  return players.filter(player => player.lobby === lobby && player.playerRole == playerRole).name;
 }
 
 // Set Direction of player (don't think this is used right now) // todo check this usage
@@ -122,7 +133,7 @@ function getScore(lobby, playerRole) {
 
 // Increment score of a player
 function incrementScore(lobby, playerRole, amount) {
-  let index = players.findIndex(playerRole => player.lobby === lobby && player.playerRole === playerRole);
+  let index = players.findIndex(player => player.lobby === lobby && player.playerRole === playerRole);
   players[index].score += amount;
 }
 
@@ -130,6 +141,8 @@ module.exports = {
   playerJoin,
   getPlayer,
   playerLeave,
+  setPlayerName,
+  getPlayerName,
   getLobbyPlayers,
   getIndex,
   setIndex,

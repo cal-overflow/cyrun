@@ -15,8 +15,10 @@ const {
 // Player (stores data specific to game characters)
 const {
   playerJoin,
-  getCurrentPlayer,
+  getPlayer,
   playerLeave,
+  setPlayerName,
+  getPlayerName,
   getLobbyPlayers,
   getIndex,
   setIndex,
@@ -35,11 +37,12 @@ const {
 } = require('./utils/players');
 const { create } = require('hbs');
 
-let roles = [1, 0, 0, 0, 0]; // array represents available roles (0's are empty roles and 1's are occupied roles)
+/*let roles = [1, 0, 0, 0, 0]; // Array represents available roles (0's are empty roles, 1's are user occupied roles, and 2's are cpu occupied roles)
+var cpus = [2, 0, 0, 0, 0]; // Array represents the players controlled by CPU's (0's are non-cpu players, 1's are CPU players, and 2's are ignored)
 var gameBoard;
 var gameTimer;
 var gameUpdateTimer;
-var statusTimer;
+var statusTimer;*/
 
 const app = express();
 const server = http.createServer(app);
@@ -75,7 +78,6 @@ io.on('connection', socket => {
       const user = userJoin(socket.id, username, lobby);
       socket.join(user.lobby);
       const users = getLobbyUsers(user.lobby);
-      console.log(username + ' joined');
       // Set random player roles
       let role = 0;
       while (roles[role] == 1)  { // find a new role if this one is already taken
@@ -83,28 +85,50 @@ io.on('connection', socket => {
       }
       setPlayerRole(user.id, role);
       roles[role] = 1;
-      console.log('player clarification: ' + username + ' ' + getPlayerRole(user.id));
-      const player = playerJoin(username, lobby, getPlayerRole(user.id));
 
-      // Welcome current user to lobby. If they are the first to join this lobby, give them the 'begin game' button
+      // Welcome current user to lobby.
       socket.emit('message', 'Welcome to CyRun lobby ' + user.lobby);
-      if (getLobbyUsers(lobby).length == 1) socket.emit('startGameButton');
       console.log('Lobby: ' + user.lobby + ' | ' + user.username + ' has joined'); // Development purposes only. DELETE THIS
+      // If this is the first user to join this lobby, give them the 'begin game' button and create all 4 players (3 to be filled or controlled by server)
+      if (getLobbyUsers(lobby).length == 1) {
+        socket.emit('startGameButton');
+        // Link player and user together
+        const player = playerJoin(username, lobby, getPlayerRole(user.id));
+
+        // Fill remaining players with CPU
+        console.log('filling remaining players with CPUs');
+        for (let i = 2; i <= 4; i++)  {
+          // Set random player roles (roles[i] = 0 if role is not taken, 1 if it is assigned to a user, and 2 if it is only assigned to a player, but not yet a user)
+          let role = 0;
+          while (roles[role] == 1 || roles[role] == 2)  { // find a new role if this one is already taken
+            console.log(roles[role]);
+            role = Math.floor(Math.random() * 4) + 1;
+          }
+          roles[role] = 2;
+          if (getLobbyPlayers(lobby).length < i)  {
+            let cpu = playerJoin(('CPU ' + role), lobby, role);
+            cpus[role] = 1;
+          }
+        }
+      } // This is not the first player to join the lobby, so we need to assign them a player (replacing/removing CPU of their assigned role)
+      else {
+        setPlayerName(username, lobby, role);
+        cpus[role] = 0;
+      }
+
+      // Send users and lobby info
+      io.to(user.lobby).emit('initDisplayLobbyInfo', {
+        lobby: user.lobby,
+        players: getLobbyPlayers(user.lobby)
+      });
 
       // Broadcast when a user connects
       socket.broadcast.to(user.lobby).emit('message', user.username + ' joined the lobby');
 
-      // Send users and lobby info
-      io.to(user.lobby).emit('lobbyUsers', {
-        lobby: user.lobby,
-        users: getLobbyUsers(user.lobby)
-      });
-
+      // Server is starting the game since 4 users have connected to lobby
       if(getLobbyUsers(user.lobby).length == 4) {
         console.log('Lobby: ' + user.lobby + ' | A game has started');
-        createGameBoard();
-        let users = getLobbyUsers(user.lobby);
-        beginGame(user, users);
+        beginGame(getLobbyPlayers(user.lobby));
       }
 
         // Update the active lobbies list (on index page)
@@ -116,9 +140,7 @@ io.on('connection', socket => {
   socket.on('beginGame', () =>  {
     let user = getCurrentUser(socket.id);
     console.log('Lobby: ' + user.lobby + ' | A game has started');
-    createGameBoard();
-    let users = getLobbyUsers(user.lobby);
-    beginGame(user, users);
+    beginGame(getLobbyPlayers(user.lobby));
     // todo
   });
 
@@ -136,34 +158,28 @@ io.on('connection', socket => {
     socket.emit('message', 'Map ' + choice + ' selected');
   }
 
-  // Filter gameBoard and remove all stationary (wall) elements. Reduces lag since we are not sending stationary data in every packet
-  function removeWalls(gameBoard) {
-    return gameBoard != 1;
-  }
-
   // Set starting positions of each player and begin the game
-  function beginGame(user, users)  {
-
+  function beginGame(players)  {
+    createGameBoard();
     // Set player spawn points
-    users.forEach(user => {
-      if (user.playerRole != 4) { // If player is a ghost spawn in ghostlair
-        respawn(gameBoard, user, false);
-        setPrevIndex(user.id, getIndex(user.id));
-        gameBoard[getIndex(user.id)] = user.playerRole + 2;
-        setPrevPosType(user.id, 8);
+    players.forEach(player => {
+      if (player.playerRole != 4) { // If player is a ghost spawn in ghostlair
+        respawn(gameBoard, player, false);
+        setPrevIndex(player.lobby, player.playerRole, getIndex(player.lobby, player.playerRole));
+        gameBoard[getIndex(player.lobby, player.playerRole)] = player.playerRole + 2;
+        setPrevPosType(player.lobby, player.playerRole, 8);
       }
       else { // IF player is pacman spawn accordingly
         var pacmanStart = Math.floor(Math.random() * (292 - 288)) + 288;
-        setIndex(user.id, pacmanStart);
-        setPrevIndex(user.id, pacmanStart);
-        gameBoard[getIndex(user.id)] = 7;
-        setPrevPosType(user.id, 0);
+        setIndex(player.lobby, player.playerRole, pacmanStart);
+        setPrevIndex(player.lobby, player.playerRole, pacmanStart);
+        gameBoard[getIndex(player.lobby, player.playerRole)] = 7;
+        setPrevPosType(player.lobby, player.playerRole, 0);
       }
-    })
+    });
 
     // Begin game
-    io.to(user.lobby).emit('setRoles', {users: users});
-    io.to(user.lobby).emit('loadBoard', ({users: users, gameBoard: gameBoard}));
+    io.to(user.lobby).emit('loadBoard', ({players: players, gameBoard: gameBoard}));
 
     gameTimer = new Date();
     game(users, gameBoard);
@@ -280,6 +296,11 @@ io.on('connection', socket => {
       clearInterval(gameUpdateTimer);
       gameUpdateTimer = setInterval(function() {game(users, gameBoard);}, 220); //Loop function
     }
+  }
+
+  // Filter gameBoard and remove all stationary (wall) elements. Reduces lag since we are not sending stationary data in every packet
+  function removeWalls(gameBoard) {
+    return gameBoard != 1;
   }
 
   // Handle player movement over a pill or dot. Returns false if a unresponsive collision occured (i.e. two ghosts run into each other)
@@ -456,6 +477,7 @@ io.on('connection', socket => {
   });
 
   // Development purposes only. DELETE THIS
+  // todo
   // Simulate a game ending
   /*socket.on('simGameOver', () =>  {
     const user = getCurrentUser(socket.id);
@@ -468,19 +490,36 @@ io.on('connection', socket => {
 
   // Runs when client disconnects
   socket.on('disconnect', () => {
-    clearInterval(gameUpdateTimer); // Stop constant server-client communication
-    const user = userLeave(socket.id);
+    if (getCurrentUser(socket.id) != undefined) {
+      const user = getCurrentUser(socket.id);
+      console.log('finding player assigned to user ' + user.username + ': ' + getPlayer(user.lobby, user.playerRole).name);
+      // Set the CPU to this player and remember that the player for this playerRole is a CPU
+      cpus[user.playerRole] = 1;
+      roles[user.playerRole] = 2;
+      setPlayerName(('CPU ' + user.playerRole), user.lobby, user.playerRole);
 
-    if (user) {
-      io.to(user.lobby).emit('message', user.username + ' left the lobby');
 
-      // Send users and lobby info
-      io.to(user.lobby).emit('lobbyUsers', {
-        lobby: user.lobby,
-        users: getLobbyUsers(user.lobby)
-      });
+      const userLeft = userLeave(socket.id);
+      console.log(getLobbyUsers(user.lobby).length);
+      if (getLobbyUsers(user.lobby).length < 1)  {
+        for (let i = 1; i <= 4; i++)  {
+          playerLeave(user.lobby, i);
+        }
+        clearInterval(gameUpdateTimer); // Stop constant server-client communication
+      }
+
+      if (userLeft) {
+        console.log(user.username + ' left the lobby\n');
+        io.to(user.lobby).emit('message', user.username + ' left the lobby');
+
+        // Send users and lobby info
+        console.log('updating player list after user left');
+        io.to(user.lobby).emit('lobbyPlayers', {
+          lobby: user.lobby,
+          players: getLobbyPlayers(user.lobby)
+        });
+      }
     }
-
     // Update the active lobbies list (on index page)
     io.emit('lobbyList', (io.sockets.adapter.rooms));
   });// Do not put anything below socket.on(disconnect)

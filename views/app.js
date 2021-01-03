@@ -8,6 +8,8 @@ const chat = document.getElementById('chat');
 const chatbox = document.getElementById('chatbox')
 const sendChat = document.getElementById('send');
 const beginGameBtn = document.getElementById('begin_game');
+const footerMsg = document.getElementById('footerMsg');
+const countdown = document.getElementById('countdown');
 const gameGrid = document.querySelector('#game');
 const winnerText = document.getElementById('winner');
 const finalScoreboard = document.getElementById('finalScoreboard');
@@ -73,21 +75,72 @@ socket.on('startGameButton', () =>  {
   location.reload();
 };*/
 
-// Get lobby and Users
-socket.on('lobbyUsers', ({lobby, users}) => {
-  let countdown = document.getElementById('countdown');
+// Initial lobby and User/player info display
+socket.on('initDisplayLobbyInfo', ({lobby, players}) => {
   countdown.innerHTML = "Waiting for more players...";
+  footerMsg.innerHTML = "The game will begin when either the first player to have joined presses the start button or four players join the lobby.<br />";
 
   outputLobbyName(lobby);
-  outputUsers(users);
+  outputPlayers(players);
 });
+
+// Handle lobby player information
+socket.on('lobbyPlayers', ({players}) => {
+  outputPlayers(players);
+});
+
+// Add lobby name to page
+function outputLobbyName(lobby) {
+  lobbyName.innerText = "Lobby " + lobby;
+}
+
+// Display players
+function outputPlayers(players){
+  players.forEach(player => {
+    let playerDisplay = document.getElementById('user' + player.playerRole);
+    let p = document.createElement('p');
+    let img = document.createElement('img');
+    let name = document.createElement('span');
+    let score = document.createElement('span');
+
+    name.innerHTML = player.name;
+    score.innerHTML = "Score: 0";
+
+    if (thisUsername === player.name) {
+      name.setAttribute('class', 'activePlayerName');
+    }
+
+    if(player.playerRole == 1)
+      img.src = "red_ghost.png";
+    else if(player.playerRole == 2)
+      img.src = "blue_ghost.png";
+    else if(player.playerRole == 3)
+      img.src = "orange_ghost.png";
+    else if(player.playerRole == 4)
+      img.src = "pacman.png";
+
+    playerDisplay.innerHTML = "";
+    p.appendChild(img);
+    p.appendChild(name);
+    p.appendChild(score);
+    playerDisplay.appendChild(p);
+  });
+}
+
+function updateScores(players)  {
+  players.forEach(player => {
+      userList.children[player.playerRole - 1].children[0].children[2].innerHTML = "Score: " + player.score;
+  });
+}
 
 // Initial drawing of gameBoard (Beginning of game)
 socket.on('loadBoard',({users, gameBoard}) => {
+  footerMsg.innerHTML = "Controls: Use the arrow keys to move your character.<br />";
   localBoard = gameBoard.slice(); // Save gameBoard to client side (walls are important here). This is going to be used to help reduce lag between
                                   // server and client because going forward we will only have the server send array updates
                                   // on non-stationary elements (everything except walls). This should reduce lag drastically - Christian
   drawGameBoard(users, localBoard);
+  startCountDown();
 });
 
 // gameUpdates from server (i.e. player position change). This is constant
@@ -290,64 +343,7 @@ document.addEventListener('keydown', function(event)	{
 	}
 }, true);
 
-// Add lobby name to page
-function outputLobbyName(lobby) {
-  lobbyName.innerText = "Lobby " + lobby;
-}
 
-socket.on('setRoles', ({users}) => {
-  startCountDown();
-  // updateScores(users);
-  initRoles(users);
-  document.getElementById("pregameMsg").innerHTML = "Controls: Use the arrow keys to move your character.<br />";
-});
-
-
-// Add users list to lobby page
-function outputUsers(users) {
-  users.forEach(user => {
-    let userDisplay = document.getElementById('user' + user.playerRole);
-    userDisplay.innerText = user.username;
-  });
-}
-
-function initRoles(users){
-  users.forEach(user => {
-    let userDisplay = document.getElementById('user' + user.playerRole);
-    let p = document.createElement('p');
-    let img = document.createElement('img');
-    let name = document.createElement('span');
-    let score = document.createElement('span');
-
-    name.innerHTML = user.username;
-    score.innerHTML = "Score: 0";
-
-    if (user.id === socket.id) {
-      name.setAttribute('class', 'activePlayerName');
-    }
-
-    if(user.playerRole == 1)
-      img.src = "red_ghost.png";
-    else if(user.playerRole == 2)
-      img.src = "blue_ghost.png";
-    else if(user.playerRole == 3)
-      img.src = "orange_ghost.png";
-    else if(user.playerRole == 4)
-      img.src = "pacman.png";
-
-    userDisplay.innerHTML = "";
-    p.appendChild(img);
-    p.appendChild(name);
-    p.appendChild(score);
-    userDisplay.appendChild(p);
-  });
-}
-
-function updateScores(users)  {
-  users.forEach(user => {
-      userList.children[user.playerRole - 1].children[0].children[2].innerHTML = "Score: " + user.score;
-  });
-}
 
 function startCountDown(){
   // Start 5 second countdown to start game
