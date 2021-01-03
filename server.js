@@ -69,7 +69,7 @@ io.on('connection', socket => {
       // This is for testing purposes only.
       // This is to test and see if the heroku service restarts after the application crashes.
       console.log('\ncrashing\n');
-      process.exit; // Development purposes only. DELETE THIS
+      process.exit(1); // Development purposes only. DELETE THIS
 
       // Welcome current user to lobby
       socket.emit('message', 'Welcome to CyRun lobby ' + user.lobby);
