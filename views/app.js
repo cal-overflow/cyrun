@@ -7,6 +7,7 @@ const leaveLobby = document.getElementById('leave_game');
 const chat = document.getElementById('chat');
 const chatbox = document.getElementById('chatbox')
 const sendChat = document.getElementById('send');
+const beginGameBtn = document.getElementById('begin_game');
 const gameGrid = document.querySelector('#game');
 const winnerText = document.getElementById('winner');
 const finalScoreboard = document.getElementById('finalScoreboard');
@@ -62,10 +63,15 @@ socket.on('failedEntrance', (reason) =>  {
   window.location.href="/index.html?reason=" + reason;
 });
 
+// This user is the first to join a lobby and will be given a 'begin game' button
+socket.on('startGameButton', () =>  {
+  beginGameBtn.style.display = "block";
+});
+
 //Reloads the page once play again button is closed which preserves the lobby and username
-playAgain.onclick = function() {
+/*playAgain.onclick = function() {
   location.reload();
-};
+};*/
 
 // Get lobby and Users
 socket.on('lobbyUsers', ({lobby, users}) => {
@@ -263,6 +269,12 @@ sendChat.addEventListener('click', (e) => {
     chatbox.value = '';
     chatbox.focus();
   }
+});
+
+// Begin the game
+beginGameBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+  socket.emit('beginGame');
 });
 
 // Leave lobby

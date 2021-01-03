@@ -212,6 +212,8 @@ footer p  {
   }
 }
 
+#begin_game { display: none;}
+
 
 .userListItem {
   padding-top: 10px;

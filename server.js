@@ -3,12 +3,21 @@ const http = require('http');
 const express = require('express');
 const socket = require('socket.io');
 const Constants = require('./Constants.js');
+// User (stores user)
 const {
   userJoin,
   getCurrentUser,
   userLeave,
   getLobbyUsers,
-  setPlayerNum,
+  setPlayerRole,
+  getPlayerRole
+} = require('./utils/users');
+// Player (stores data specific to game characters)
+const {
+  playerJoin,
+  getCurrentPlayer,
+  playerLeave,
+  getLobbyPlayers,
   getIndex,
   setIndex,
   getDirection,
@@ -23,9 +32,10 @@ const {
   setStatus,
   getScore,
   incrementScore
-} = require('./utils/users');
+} = require('./utils/players');
 const { create } = require('hbs');
 
+let roles = [1, 0, 0, 0, 0]; // array represents available roles (0's are empty roles and 1's are occupied roles)
 var gameBoard;
 var gameTimer;
 var gameUpdateTimer;
@@ -64,10 +74,21 @@ io.on('connection', socket => {
     else if (!failedEntrance) {
       const user = userJoin(socket.id, username, lobby);
       socket.join(user.lobby);
-      setPlayerNum(user.id, getLobbyUsers(lobby).length); // Users are only assigned a playerNum so they can be displayed on user list before game starts
+      const users = getLobbyUsers(user.lobby);
+      console.log(username + ' joined');
+      // Set random player roles
+      let role = 0;
+      while (roles[role] == 1)  { // find a new role if this one is already taken
+        role = Math.floor(Math.random() * 4) + 1;
+      }
+      setPlayerRole(user.id, role);
+      roles[role] = 1;
+      console.log('player clarification: ' + username + ' ' + getPlayerRole(user.id));
+      const player = playerJoin(username, lobby, getPlayerRole(user.id));
 
-      // Welcome current user to lobby
+      // Welcome current user to lobby. If they are the first to join this lobby, give them the 'begin game' button
       socket.emit('message', 'Welcome to CyRun lobby ' + user.lobby);
+      if (getLobbyUsers(lobby).length == 1) socket.emit('startGameButton');
       console.log('Lobby: ' + user.lobby + ' | ' + user.username + ' has joined'); // Development purposes only. DELETE THIS
 
       // Broadcast when a user connects
@@ -91,6 +112,16 @@ io.on('connection', socket => {
       }
   });
 
+  // The first user to join the lobby has requested that the game starts.
+  socket.on('beginGame', () =>  {
+    let user = getCurrentUser(socket.id);
+    console.log('Lobby: ' + user.lobby + ' | A game has started');
+    createGameBoard();
+    let users = getLobbyUsers(user.lobby);
+    beginGame(user, users);
+    // todo
+  });
+
   // Choose a random level (1 or 2) and store a copy of that level as gameBoard
   function createGameBoard()  {
     let choice = Math.floor(Math.random() * (3 - 1)) + 1; // max 2 (exclusive) min 1 (inclusive)
@@ -110,18 +141,8 @@ io.on('connection', socket => {
     return gameBoard != 1;
   }
 
-  // Set random player roles and starting positions of each player and begin the game
+  // Set starting positions of each player and begin the game
   function beginGame(user, users)  {
-    // Set random Roles
-    let roles = [1, 0, 0, 0, 0]; // array represents available roles (0's are empty roles and 1's are occupied roles)
-    let role = 0;
-    users.forEach(user =>  {
-      while (roles[role] == 1)  { // find a new role if this one is already taken
-        role = Math.floor(Math.random() * 4) + 1;
-      }
-      setPlayerNum(user.id, role);
-      roles[role] = 1;
-    });
 
     // Set player spawn points
     users.forEach(user => {
