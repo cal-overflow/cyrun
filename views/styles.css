@@ -64,6 +64,12 @@ ul {
   line-height: .7em;
 }
 
+#entranceFailureFeedback h5, #entranceFailureFeedback p  {
+  text-align: center;
+  line-height: normal;
+  padding-bottom: 5px;
+}
+
 #submitBtn {
   float: right;
   margin-bottom: 20px;

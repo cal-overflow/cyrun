@@ -13,7 +13,7 @@ const finalScoreboard = document.getElementById('finalScoreboard');
 const matchTime = document.getElementById('matchTime');
 const gameOver = document.getElementById('endgameboard');
 const playAgain = document.getElementById('playagain');
-const endgameSim = document.getElementById('endgame'); // Develoment purposes only. Delete this
+
 
 var localBoard;
 var playerEnabled = -1;
@@ -66,11 +66,6 @@ socket.on('failedEntrance', (reason) =>  {
 playAgain.onclick = function() {
   location.reload();
 };
-
-// Develoment purposes only. Delete this
-function endgame()  {
-  socket.emit('simGameOver');
-}
 
 // Get lobby and Users
 socket.on('lobbyUsers', ({lobby, users}) => {

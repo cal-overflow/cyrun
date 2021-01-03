@@ -434,14 +434,14 @@ io.on('connection', socket => {
 
   // Development purposes only. DELETE THIS
   // Simulate a game ending
-  socket.on('simGameOver', () =>  {
+  /*socket.on('simGameOver', () =>  {
     const user = getCurrentUser(socket.id);
     io.to(user.lobby).emit('gameOver', {
       lobby: user.lobby,
       users: getLobbyUsers(user.lobby),
       gameTime: 1000
     });
-  });
+  });*/
 
   // Runs when client disconnects
   socket.on('disconnect', () => {

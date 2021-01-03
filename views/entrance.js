@@ -58,11 +58,11 @@ function checkEntrance()  {
 function failureFeedback()  {
   if ({reason}.reason != undefined)  {
     if ({reason}.reason == "duplicateName") {
-      feedback.innerHTML = "<p><span class='bold'>Note</span>: Another user already has your username.<br />Try joining with another username.</p>";
+      feedback.innerHTML = "<h5>Error</h5><p>Another user already has your username.<br />Try joining with another username.</p>";
     }
     else if ({reason}.reason == "fullLobby") {
-      feedback.innerHTML = "<p><span class='bold'>Note</span>: Game lobby is full.<br />Join another game lobby or wait until a player leaves.</p>";
+      feedback.innerHTML = "<h5>Error</h5><p>Game lobby is full.<br />Join another game lobby or wait until a player leaves.</p>";
     }
-    else feedback.innerHTML = "<p><span class='bold'>Note</span>: Error joining game lobby.<br />Please try again</p>";
+    else feedback.innerHTML = "<h5>Error</h5><p>There was an issue joining the game lobby.<br />Please try again</p>";
   }
 }
