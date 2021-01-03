@@ -1,8 +1,9 @@
 const socket = io();
 
 const lobbyName = document.getElementById('gamelobby');
+const userSection = document.getElementById('users_lobby');
 const userList = document.getElementById('users');
-const leaveLobbyBtn = document.getElementById('leave');
+const leaveLobby = document.getElementById('leave_game');
 const chat = document.getElementById('chat');
 const chatbox = document.getElementById('chatbox')
 const sendChat = document.getElementById('send');
@@ -12,13 +13,13 @@ const finalScoreboard = document.getElementById('finalScoreboard');
 const matchTime = document.getElementById('matchTime');
 const gameOver = document.getElementById('endgameboard');
 const playAgain = document.getElementById('playagain');
-gameOver.style.display = "none";
+
 
 var localBoard;
 var playerEnabled = -1;
 
-const GRID_SIZE = 20; // Grid size never changes
-const CELL_SIZE = 20; // CELL SIZE increases on mobile
+const GRID_SIZE = 20; // Grid size never changes (cells make up grid)
+var CELL_SIZE = 20; // This is never changed. The gameBoard is scaled up to fit larger screens in the stylesheet (CSS)
 
 const SQUARE_TYPE = {
   BLANK: 'blank',
@@ -51,9 +52,15 @@ const SQUARE_LIST = [
 
 // Get username and lobby from URL
 const {username, lobby} = Qs.parse(location.search, {ignoreQueryPrefix: true});
+const thisUsername = {username, lobby}.username;
 
 // Join lobby
 socket.emit('joinLobby', {username, lobby});
+
+// Handle a failed Join Lobby attempt (Take the user back to the index page with a reason for failing entrance)
+socket.on('failedEntrance', (reason) =>  {
+  window.location.href="/index.html?reason=" + reason;
+});
 
 //Reloads the page once play again button is closed which preserves the lobby and username
 playAgain.onclick = function() {
@@ -95,76 +102,157 @@ function drawGameBoard(users, gameBoard){
     board.innerHTML = '';
     // First set correct amount of columns based on Grid Size and Cell Size
     board.style.cssText = `grid-template-columns: repeat(${GRID_SIZE}, ${CELL_SIZE}px);`;
-    //console.log(gameBoard); // Development purposes only
+    var cells = 0;
     gameBoard.forEach((square) => {
       const div = document.createElement('div');
-      div.classList.add('square', SQUARE_LIST[square]);
       div.style.cssText = `width: ${CELL_SIZE}px; height: ${CELL_SIZE}px;`;
-      if (SQUARE_LIST[square] == SQUARE_TYPE.PACMAN)  { // customize pacman
+
+      // First determine if we are creating a ghost cell. If we are, we want to see if it needs to be flashing or not.
+      // We then create a div inside of our cell so that we can have a ghost seperate from the background element (the background could be light grey or black)
+      if (SQUARE_LIST[square] == SQUARE_TYPE.GHOST1 || SQUARE_LIST[square] == SQUARE_TYPE.GHOST2 || SQUARE_LIST[square] == SQUARE_TYPE.GHOST3)  {
+        var ghost = document.createElement('div');
+        ghost.classList.add('square', SQUARE_LIST[square], 'ghost');
         users.forEach(user => {
-          if (user.playerRole == 4 && user.direction != 0) { // Pacman rotates depending on direction
-            var rotation = 0;
-            if (user.direction == -1) rotation = 180; // facing left
-            else if (user.direction == 20) rotation = 90; // facing up
-            else if (user.direction == -20) rotation = 270; // facing down
-            div.style.transform = "rotate(" + rotation + "deg)";
-          }
+          if (user.prevPosType == 8 && user.index == cells) div.classList.add('square', 'lair'); // Correctly set background color (this took forever to implement, but I got it done!)
+          if (user.status == 1) ghost.classList.add('edible_ghost');
         });
-      } // Customize the three ghosts: (make the ghosts flash if pacman ate pill)
-      else if (SQUARE_LIST[square] == SQUARE_TYPE.GHOST1 || SQUARE_LIST[square] == SQUARE_TYPE.GHOST2 || SQUARE_LIST[square] == SQUARE_TYPE.GHOST3)  {
-        users.forEach(user => {
-          if (user.status == 1) {
-            div.style.backgroundImage = "url('edible_ghost.png')";
-            div.style.filter = "drop-shadow(1px 4px 1px #616161);"
-          }
-        });
+
+
+        div.appendChild(ghost); // This allows for us to have the ghost seperate from the background (this is important for a clean appearance)
       }
-      //div.innerText = square; // Development purposes only. DELETE THIS
-      div.setAttribute("class", SQUARE_LIST[square]);
+      else {
+        // Add class to current square (this is here because it is not the same for ghost cells)
+        div.classList.add('square', SQUARE_LIST[square]);
+        // Customize PacMan if that is the current square
+        if (SQUARE_LIST[square] == SQUARE_TYPE.PACMAN)  { // customize pacman
+          users.forEach(user => {
+            if (user.playerRole == 4 && user.direction != 0) { // Pacman rotates depending on direction
+              var rotation = 0;
+              if (user.direction == -1) rotation = 180; // facing left
+              else if (user.direction == 20) rotation = 90; // facing up
+              else if (user.direction == -20) rotation = 270; // facing down
+              div.style.transform = "rotate(" + rotation + "deg)";
+            }
+          });
+        }
+      }
+
       board.appendChild(div);
       grid.push(div);
+      cells++;
     });
-    console.log(gameBoard);
+    // console.log(gameBoard); // Develoment purposes only. Delete this
 }
 
 function rotateDiv(position, degree){
   this.grid[position].style.transform = `rotate({deg}deg)`;
 }
 
+// Lobby Messages from Server
+socket.on('lobbyMessage', ({user, username, message}) => {
+  const p = document.createElement('p');
+  const usernameSpan = document.createElement('span');
+  const messageSpan = document.createElement('span');
+  usernameSpan.innerText = username;
+  if (socket.id == user.id)
+    usernameSpan.setAttribute('class', 'activePlayerName');
+  messageSpan.innerText = ': ' + message;
+  p.appendChild(usernameSpan);
+  p.appendChild(messageSpan);
+  printChatMessage(p);
+});
+
 // Messages from Server
 socket.on('message', message => {
   const p = document.createElement('p');
   p.innerText = message;
+  printChatMessage(p);
+});
+
+function printChatMessage(p)  {
   chat.appendChild(p);
   chat.scrollTop = chat.scrollHeight; // automatically scroll to bottom of chat messages
-});
+}
 
 // gameOver from server
 socket.on('gameOver', ({lobby, users, gameTime}) => {
   socket.emit('ackGameEnd', {id : socket.id});
   playerEnabled = -1; // Player movement disabled
   let ghostTotal = 0;
-  for(let i = 0; i < 3; i++)
-    ghostTotal += users[i].score;
-  if(users[3].score > ghostTotal)
-  winnerText.innerHTML = "Pacman wins!!!";
-  else
-  winnerText.innerHTML = "The ghosts win!!!";
+  let pacmanScore = 0;
+  users.forEach((user) => {
+    if (user.playerRole != 4)
+      ghostTotal += user.score;
+    else
+      pacmanScore = user.score;
+  });
 
-  for(let i = 0; i < 4; i ++){
-    let p = document.createElement('p');
-    if(users[i].playerRole == 1)
-      p.innerHTML = "Red Ghost Score: " + users[i].score;
-    else if(users[i].playerRole == 2)
-      p.innerHTML = "Blue Ghost Score: " + users[i].score;
-    else if(users[i].playerRole == 3)
-      p.innerHTML = "Orange Ghost Score: " + users[i].score;
-    else if(users[i].playerRole == 4)
-      p.innerHTML = "Pacman Score: " + users[i].score;
-    finalScoreboard.appendChild(p);
+    let img = document.createElement('img');
+    img.setAttribute('class', 'characterGameOver')
+  if(pacmanScore > ghostTotal) {
+    img.src = "pacman.png";
+    winnerText.innerHTML = "PacMan " + img.outerHTML;
   }
+  else if (pacmanScore === ghostTotal)  {
+    winnerText.innerHTML = "Draw";
+  }
+  else {
+    img.src = "red_ghost.png";
+    winnerText.innerHTML = "Ghosts " + img.outerHTML;
+    img.src = "blue_ghost.png";
+    winnerText.innerHTML += img.outerHTML;
+    img.src = "orange_ghost.png";
+    winnerText.innerHTML += img.outerHTML;
+  }
+
+  let playerInfo = document.createElement('div');
+  playerInfo.setAttribute('id', 'playerInfo');
+  let playerScore = document.createElement('div');
+  playerScore.setAttribute('id', 'playerScore');
+  users.forEach((user) => {
+    let player = document.createElement('p');
+    let score = document.createElement('p');
+
+    switch (user.playerRole)  {
+      case 1:
+        img.src = "red_ghost.png";
+        break;
+      case 2:
+        img.src = "blue_ghost.png";
+        break;
+      case 3:
+        img.src = "orange_ghost.png";
+        break;
+      case 4:
+        img.src = "pacman.png";
+        break;
+    }
+    img.setAttribute('title', user.username);
+    if (user.playerRole != 4) {
+      player.style.backgroundColor = "#cfcfcf";
+      score.style.backgroundColor = "#cfcfcf";
+    }
+
+    player.innerHTML += img.outerHTML + user.username + ": ";
+    score.innerHTML = "<span class='score'>" + user.score + "</span>";
+    playerInfo.appendChild(player);
+    playerScore.appendChild(score);
+  });
+  // Create a Ghost Total score section at the bottom of the scoreboard
+  let ghostTotalPlayer = document.createElement('p');
+  ghostTotalPlayer.innerHTML = "Ghost Total";
+  playerInfo.appendChild(ghostTotalPlayer);
+  let ghostTotalScore = document.createElement('p');
+  ghostTotalScore.innerHTML = "<span class='score'>" + ghostTotal + "</span>";
+  playerScore.appendChild(ghostTotalScore);
+
+  finalScoreboard.appendChild(playerInfo);
+  finalScoreboard.appendChild(playerScore);
+
+  // Hide user section and replace it with endgameboard
+  userSection.style.display = "none";
   gameOver.style.display = "block";
-  matchTime.innerText = 'Match time: ' + gameTime + ' seconds';
+  matchTime.innerText = gameTime + ' seconds';
 });
 
 // Send message
@@ -175,6 +263,12 @@ sendChat.addEventListener('click', (e) => {
     chatbox.value = '';
     chatbox.focus();
   }
+});
+
+// Leave lobby
+leaveLobby.addEventListener('click', (e) =>  {
+  e.preventDefault();
+  // TODO
 });
 
 // Send message if user hits 'enter' key
@@ -196,43 +290,50 @@ socket.on('setRoles', ({users}) => {
   document.getElementById("pregameMsg").innerHTML = "Controls: Use the arrow keys to move your character.<br />";
 });
 
-function initRoles(users){
-  userList.innerHTML = '';
+
+// Add users list to lobby page
+function outputUsers(users) {
   users.forEach(user => {
-    const li = document.createElement('li');
+    let userDisplay = document.getElementById('user' + user.playerRole);
+    userDisplay.innerText = user.username;
+  });
+}
+
+function initRoles(users){
+  users.forEach(user => {
+    let userDisplay = document.getElementById('user' + user.playerRole);
+    let p = document.createElement('p');
     let img = document.createElement('img');
     let name = document.createElement('span');
-    let br = document.createElement('br');
-    let score = document.createElement("span");
+    let score = document.createElement('span');
 
+    name.innerHTML = user.username;
     score.innerHTML = "Score: 0";
-  
+
     if (user.id === socket.id) {
-      name.innerHTML = " - " + user.username + " (You)";
-      li.style.fontWeight = "bold";
-      li.style.color = "blue";
-    }
-    else{
-      name.innerHTML = " - " + user.username;
+      name.setAttribute('class', 'activePlayerName');
     }
 
-    if(user.playerRole == 1) 
-      img.src = "red_ghost.png";  
-    else if(user.playerRole == 2) 
-      img.src = "blue_ghost.png"; 
-    else if(user.playerRole == 3) 
-      img.src = "orange_ghost.png"; 
-    else if(user.playerRole == 4) 
-      img.src = "pacman.png"; 
-            
-    img.setAttribute("height", "35");
-    img.setAttribute("width", "35");
-    li.appendChild(img); 
-    li.appendChild(name); 
-    li.appendChild(br);  
-    li.appendChild(score); 
-    
-    userList.appendChild(li);
+    if(user.playerRole == 1)
+      img.src = "red_ghost.png";
+    else if(user.playerRole == 2)
+      img.src = "blue_ghost.png";
+    else if(user.playerRole == 3)
+      img.src = "orange_ghost.png";
+    else if(user.playerRole == 4)
+      img.src = "pacman.png";
+
+    userDisplay.innerHTML = "";
+    p.appendChild(img);
+    p.appendChild(name);
+    p.appendChild(score);
+    userDisplay.appendChild(p);
+  });
+}
+
+function updateScores(users)  {
+  users.forEach(user => {
+      userList.children[user.playerRole - 1].children[0].children[2].innerHTML = "Score: " + user.score;
   });
 }
 
@@ -247,38 +348,12 @@ function startCountDown(){
       countdown.innerHTML = "GO!";
       playerEnabled = 1; // Enable player so that they can send direction update to server
     }
-    else
+    else if (second == -10)  {
+      countdown.style.visibility = "hidden";
       clearInterval(interval);
+    }
     second--;
   }, 1000);
-}
-
-function updateScores(users)  {
-  users.forEach(user => {
-    if (user.playerRole == 1)
-      userList.children[0].children[3].innerHTML = "Score: " + user.score;
-    if (user.playerRole == 2)
-      userList.children[1].children[3].innerHTML = "Score: " + user.score;
-    if (user.playerRole == 3)
-      userList.children[2].children[3].innerHTML = "Score: " + user.score;
-    if (user.playerRole == 4)
-      userList.children[3].children[3].innerHTML = "Score: " + user.score;
-  });
-}
-
-
-// Add users list to lobby page
-function outputUsers(users) {
-  userList.innerHTML = '';
-  users.forEach(user => {
-    const li = document.createElement('li');
-    li.innerText = user.username;
-    li.setAttribute("id", user.username);
-    if (user.id === socket.id) {
-      li.style.fontWeight = "bold";
-    }
-    userList.appendChild(li);
-  });
 }
 
 this.document.addEventListener('keydown', function(event) {

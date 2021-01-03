@@ -1,15 +1,17 @@
-<html>
+<html class="bg-dark">
 <head>
 <title>CyRun - Lobby</title>
+<!-- Meta tag below is important for safari on mobile devices (prevents zooming when a user focuses on a text box, etc.) -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.js"></script>
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 <link rel="stylesheet" href="styles.css" />
 </head>
 
-<body style="background-color:#808080">
+<body style="background-color:#E6E6E6">
 <nav class="navbar navbar-light bg-dark">
   <a class="navbar-brand mx-auto">
-  <img id="level" height="32px" src="logo.png">
+  <img id="level" height="42px" src="logo.png">
   </a>
 </nav>
 
@@ -17,9 +19,11 @@
   <div class="row">
     <!-- Left Column -->
     <div class="col-lg-3 mb-4">
-      <div id="chat_container" class="mt-2" >
+      <button onClick="toggleChat();" class="toggleChat btn btn-primary">Chat</button>
+      <div id="chat_container" class="mt-2">
+        <button onClick="toggleChat();" class="toggleChat exit-chat btn btn-primary">Back</button>
         <h5 id="gamelobby"></h5>
-        <div class="rounded border border-dark bg-light border-5 p-2" id="chat" style="overflow-y: scroll; max-height: 500px;"></div>
+        <div class="rounded border border-dark bg-light border-5 p-2" id="chat"></div>
         <div class="input-group mt-1">
           <input type="text" placeholder="Type your message" id="chatbox" name="chat" class="form-control">
           <div class="input-group-append">
@@ -34,48 +38,77 @@
       <h4 id="countdown"></h4>
       <div id="game"></div>
     </div>
+
+
     <!-- Right Column -->
-    <div class="col-lg-3">
-      <h5 style="height: 24px"> </h5>
+    <div class="col-lg-3 pt-38">
       <div id="users_lobby" class="bg-light mt-2 rounded p-2 border border-dark border-5">
         <h4>Users</h4>
-        <ul id="users"></ul>
-        <form action="index.html" class="form-group">
-          <button type="submit" class="btn btn-primary">Leave game</button>
+        <div id="users">
+          <div id="user1" class="userListItem"></div>
+          <div id="user2" class="userListItem"></div>
+          <div id="user3" class="userListItem"></div>
+          <div id="user4" class="userListItem"></div>
+        </div>
+        <form id="leave_game_form" action="index.html" class="form-group">
+          <button type="submit" class="btn btn-primary" id="leave_game" onclick="location.href = 'index.html'">Leave game</button>
         </form>
       </div>
-    </div>
-
-    <!--End game board-->
-    <div class="rounded border border-dark bg-light border-5 p-2" id="endgameboard" >
+      <div id="endgameboard" class="bg-light mt-2 rounded p-2 border border-dark border-5">
         <nav class="navbar navbar-light bg-dark">
           <a class="navbar-brand mx-auto">
-            <img height="48px" src="gameover.png">
+            <img src="gameover.png" id="gameOverPic">
           </a>
         </nav>
-        <br><br>
-        <h4 id="winner"></h4>
+        <h4 class="clear-both pt-20"><span class="bold">Match Time</span>: <span id="matchTime"></span></h4>
         <br>
-        <h4><u>Scoreboard</u></h4><br>
-        <p2 id="finalScoreboard"></p2> 
-        <br>
-        <h4 id="matchTime"></h4>
-        <br>
-        <div style="text-align: center;">
+        <h4 class="center-text">Scoreboard</h4>
+        <HR>
+        <div id="finalScoreboard"></div>
+        <HR class="clear-both">
+        <h4><span class="bold">Winner</span>: <span id="winner"></winner></h4>
+        <HR>
+        <div class="center-text">
           <button id="playagain" class="btn btn-primary">Play again</button>
           <br><br>
           <form action="index.html" class="form-group">
             <button type="submit" class="btn btn-primary">Return to main menu</button>
           </form>
+          <p><a href="index.html#scoring">About Scoring</a></p>
         </div>
+      </div>
     </div>
   </div>
 </div>
 <p></p><br><br>
 <footer class="footer text-center bg-dark">
-  <p style="color:#FFFF00"><span id="pregameMsg">Four players are needed for a game to begin<br /></span>
-  Created by <a href="http://christianlisle.com" target="_blank">Christian Lisle</a>, Marissa Gustafson, and Joe Dobosenski</p>
+  <p><span id="pregameMsg">Four players are needed for a game to begin<br /></span>
+  Created by <a href="http://christianlisle.com" target="_blank">Christian Lisle</a>, <a href="https://github.com/goofyspoon?tab=repositories" target="_blank">Marissa Gustafson</a>, and Joe Dobosenski</p>
 </footer>
+<script>
+  function toggleChat() {
+    let chat = document.getElementById('chat_container');
+    if (chat.style.display != 'block')
+      chat.style.display = 'block';
+    else {
+      chat.style.display = 'none';
+      document.getElementById('chat_container')
+    }
+
+    // Detect when orientation is changed and fix toggleChat issue that happens when a user hides chat in portrait and then goes to landscape orientation
+    function handleWindowResize() {
+      if (window.innerWidth > window.innerHeight) {
+        document.getElementById('chat_container').style.display = 'block';
+      }
+      else if (document.getElementById('chat_container').style.display == 'block' && !(window.innerHeight > window.innerWidth))  {
+        document.getElementById('chat_container').style.display = 'none'; // Hide chat if going to portrait from landscape
+      }
+    }
+
+    window.onresize = handleWindowResize;
+}
+
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.9.4/qs.min.js" integrity="sha512-BHtomM5XDcUy7tDNcrcX1Eh0RogdWiMdXl3wJcKB3PFekXb3l5aDzymaTher61u6vEZySnoC/SAj2Y/p918Y3w==" crossorigin="anonymous"></script>
 <script src="./socket.io/socket.io.js"></script>
 <script src="./app.js"></script>

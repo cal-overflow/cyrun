@@ -40,27 +40,31 @@ app.use(express.static('views')); // Set static folder to /views
 
 // Run when client connects
 io.on('connection', socket => {
+  socket.on('retrieveLobbies', () =>  {
+    socket.emit('lobbyList', (io.sockets.adapter.rooms));
+  });
+
   socket.on('joinLobby', ({username, lobby}) => {
     // Check the lobby to ensure there will not be two users with the same name or there are already 4 users in the lobby
-    var entranceFailure = false;
     let usersInLobby = getLobbyUsers(lobby);
-    if (usersInLobby.length >= 4)	{
-      console.log("Rejected player because lobby is full.");
-      socket.emit('message', 'The lobby, ' + lobby + ', is full')
-      entranceFailure = true;
-    }
-    for (var i = 0; i < usersInLobby.length && !(entranceFailure); i++) {
+    let failedEntrance = false;
+    for (var i = 0; i < usersInLobby.length; i++) {
       if (usersInLobby[i].username === username) {
-        socket.emit('message', 'There already exists a user in lobby: \"' + lobby + '\" with the name: \"' + username + '\"');
-        entranceFailure = true;
-        console.log("Rejected player due to repeat of username.");
+        socket.emit('failedEntrance', 'duplicateName');
+        socket.disconnect();
+        failedEntrance = true;
         break;
       }
     }
-    if (entranceFailure) socket.disconnect();
-    else {
+    if (usersInLobby.length >= 4)	{
+      socket.emit('failedEntrance', 'fullLobby');
+      failedEntrance = true;
+      socket.disconnect();
+    }
+    else if (!failedEntrance) {
       const user = userJoin(socket.id, username, lobby);
       socket.join(user.lobby);
+      setPlayerNum(user.id, getLobbyUsers(lobby).length); // Users are only assigned a playerNum so they can be displayed on user list before game starts
 
       // Welcome current user to lobby
       socket.emit('message', 'Welcome to CyRun lobby ' + user.lobby);
@@ -81,7 +85,10 @@ io.on('connection', socket => {
         let users = getLobbyUsers(user.lobby);
         beginGame(user, users);
       }
-    } // end else statement
+
+        // Update the active lobbies list (on index page)
+        io.emit('lobbyList', (io.sockets.adapter.rooms));
+      }
   });
 
   // Choose a random level (1 or 2) and store a copy of that level as gameBoard
@@ -103,25 +110,35 @@ io.on('connection', socket => {
     return gameBoard != 1;
   }
 
-  // Set the roles and starting positions of each player and begin the game
+  // Set random player roles and starting positions of each player and begin the game
   function beginGame(user, users)  {
-    for (let i = 0; i < 4; i++) {
-      setPlayerNum(users[i].id, i + 1);
-
-      if (i < 3) { // Players 0, 1, & 2 are ghosts
-          respawn(gameBoard, users[i], false);
-          setPrevIndex(users[i].id, getIndex(users[i].id));
-          gameBoard[getIndex(users[i].id)] = i + 3;
-          setPrevPosType(users[i].id, 8);
-        }
-      else  { // Last player will be pacman
-        var pacmanStart = Math.floor(Math.random() * (292 - 288)) + 288;
-        setIndex(users[i].id, pacmanStart);
-        setPrevIndex(users[i].id, pacmanStart);
-        gameBoard[getIndex(users[i].id)] = 7;
-        setPrevPosType(users[i].id, 0);
+    // Set random Roles
+    let roles = [1, 0, 0, 0, 0]; // array represents available roles (0's are empty roles and 1's are occupied roles)
+    let role = 0;
+    users.forEach(user =>  {
+      while (roles[role] == 1)  { // find a new role if this one is already taken
+        role = Math.floor(Math.random() * 4) + 1;
       }
-    }
+      setPlayerNum(user.id, role);
+      roles[role] = 1;
+    });
+
+    // Set player spawn points
+    users.forEach(user => {
+      if (user.playerRole != 4) { // If player is a ghost spawn in ghostlair
+        respawn(gameBoard, user, false);
+        setPrevIndex(user.id, getIndex(user.id));
+        gameBoard[getIndex(user.id)] = user.playerRole + 2;
+        setPrevPosType(user.id, 8);
+      }
+      else { // IF player is pacman spawn accordingly
+        var pacmanStart = Math.floor(Math.random() * (292 - 288)) + 288;
+        setIndex(user.id, pacmanStart);
+        setPrevIndex(user.id, pacmanStart);
+        gameBoard[getIndex(user.id)] = 7;
+        setPrevPosType(user.id, 0);
+      }
+    })
 
     // Begin game
     io.to(user.lobby).emit('setRoles', {users: users});
@@ -218,7 +235,6 @@ io.on('connection', socket => {
           }
         }
 
-
       if (update) {
         gameBoard[getPrevIndex(user.id)] = getPrevPosType(user.id);
         setPrevPosType(user.id, gameBoard[getIndex(user.id)]);
@@ -245,11 +261,10 @@ io.on('connection', socket => {
     }
   }
 
-  // Handle player movement over a pill or dot. Returns false if two ghosts run into each other
+  // Handle player movement over a pill or dot. Returns false if a unresponsive collision occured (i.e. two ghosts run into each other)
   function checkCollisions(gameBoard, index, user) {
     // First check if player is colliding with nothing
     if (gameBoard[index] == 0 || (gameBoard[index] == 8 && user.playerRole != 4)) {
-      //setPrevPosType(user.id, gameBoard[index]);
       return true;
     } // Player collides with dot or pill
     else if (gameBoard[index] == 6 || gameBoard[index] == 2) {
@@ -270,13 +285,19 @@ io.on('connection', socket => {
         return true;
       }
       else { // Ghost moved over pill/dot
-        //setPrevPosType(user.id, gameBoard[index]);
         return true;
       }
     } // Player collides with another player
     else if (gameBoard[index] == 3 || gameBoard[index] == 4 || gameBoard[index] == 5 || gameBoard[index] == 7) {
       if (getCurrentUser(user.id).playerRole == 4)  {
         if (getStatus(user.id) == 1)  {
+          // Check to see if the ghost that PacMan is colliding with is in a ghost Lair spot. If they are then PacMan will stop moving (return false)
+          for (let i = 0; i < getLobbyUsers(user.lobby).length; i++)  {
+            if (index == getIndex(getLobbyUsers(user.lobby)[i].id) && getPrevPosType(getLobbyUsers(user.lobby)[i].id) == 8)  {
+              return false;
+            }
+          }
+
           // Pacman collides with (eats) ghost
           incrementScore(user.id, 2);
           var pointUnderGhost = false;
@@ -410,8 +431,19 @@ io.on('connection', socket => {
   // lobby chat -- normal message
   socket.on('lobbyMessage', ({username, message}) => {
     const user = getCurrentUser(socket.id);
-    io.to(user.lobby).emit('message', username + ': ' + message);
+    io.to(user.lobby).emit('lobbyMessage', {user: user, username: username, message: message});
   });
+
+  // Development purposes only. DELETE THIS
+  // Simulate a game ending
+  /*socket.on('simGameOver', () =>  {
+    const user = getCurrentUser(socket.id);
+    io.to(user.lobby).emit('gameOver', {
+      lobby: user.lobby,
+      users: getLobbyUsers(user.lobby),
+      gameTime: 1000
+    });
+  });*/
 
   // Runs when client disconnects
   socket.on('disconnect', () => {
@@ -427,6 +459,9 @@ io.on('connection', socket => {
         users: getLobbyUsers(user.lobby)
       });
     }
+
+    // Update the active lobbies list (on index page)
+    io.emit('lobbyList', (io.sockets.adapter.rooms));
   });// Do not put anything below socket.on(disconnect)
 });
 

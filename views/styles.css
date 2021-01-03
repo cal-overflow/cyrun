@@ -2,20 +2,280 @@
   box-sizing: border-box;
 }
 
+#howToPlay h4, #howToPlay h5  {
+  text-align: center;
+}
+
+#howToPlay  {
+  border-width: 5px !important;
+}
+
 .instructions {
-  list-style-type: disc;
+  list-style-type: none; /* Remove bullets */
+  padding: 0; /* Remove padding */
+  margin: 0; /* Remove margins */
 }
 
 ul {
   list-style-type: none;
 }
-/* Create three unequal columns that floats next to each other */
 
+.bold { font-weight: bold; }
+.underline  { text-decoration: underline; }
+.center-text  { text-align: center; }
+.float-right  { float: right; }
+.clear-both { clear: both; }
+.pt-20 { padding-top: 20px; }
+.mt-20  { margin-top: 20px; }
+.pt-38  { padding-top: 38px; }
+.pointer-cursor { cursor: pointer; }
+
+#characters {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.characterEntrance  {
+  width: 20%;
+  max-width: 72px;
+  height: auto;
+  filter: drop-shadow(1px 4px 1px #4d4d4d);
+}
+
+.ghostEntrance  {
+  animation: float 3s ease-out infinite, wave 6s linear infinite;
+}
+
+#entranceForm {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+#entranceForm p {
+  text-align: right;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  margin-top: 0px;
+  margin-bottom: 5px;
+  font-size: .7em;
+  line-height: .7em;
+}
+
+#entranceFailureFeedback h5, #entranceFailureFeedback p  {
+  text-align: center;
+  line-height: normal;
+  padding-bottom: 5px;
+}
+
+#submitBtn {
+  float: right;
+  margin-bottom: 20px;
+}
+
+#lobbyListContainer  {
+  clear: both;
+  width: 80%;
+  max-width: 350px;
+  min-height: 150px;
+  max-height: 200px;
+  overflow: hidden;
+  margin: 0 auto;
+  position: relative;
+  display: flex;
+  padding-bottom: 0px !important;
+}
+
+#lobbyLabelContainer  {
+  z-index: 100;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  text-align: center;
+  background-color:
+}
+
+#lobbyLabelContainer label  {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+#lobbyLabelContainer HR {
+  margin: 0 0 0 0;
+  padding: 0 0 0 0;
+}
+
+#lobbyList  {
+  overflow-y: scroll !important;
+  margin-top: 33px;
+  width: 100%;
+  margin-bottom: 0px;
+}
+
+#lobbyList p  {
+  width: 100%;
+  float: left;
+}
+#lobbyList p, #lobbyList span {
+  padding-left: 5%;
+  padding-right: 5%;
+}
+
+footer p  {
+  width: 82%;
+  margin: 0 auto;
+  color: #FFFF00;
+}
+
+/* Create three unequal columns that floats next to each other */
 .border-5{
   border-width:5px !important;
 }
+
 * {
   box-sizing: border-box;
+}
+
+/* chatbox and user list styling on lobby page*/
+#chat, #users_lobby {
+  min-height: 500px;
+  height: 500px;
+  position: relative;
+}
+
+
+#chat {
+  word-break: break-all;
+  overflow-y: scroll;
+}
+
+@media only screen and (orientation: portrait)  {
+  html, body  {
+    overflow-x: hidden;
+  }
+  .toggleChat, #by, #countdown, #leave_game {
+    font-size: 2em;
+    margin: 10px auto 10px auto;
+    display: block;
+  }
+
+  @media only screen and (min-width: 951px) {
+    #users_lobby  {
+      min-height: 620px;
+      height: 650px;
+    }
+  }
+
+  @media only screen and (max-width: 950px) {
+    #users_lobby  {
+      min-height: 500px;
+      height: 550px;
+    }
+  }
+
+  .exit-chat {
+    margin-left: 10px;
+    float: left;
+  }
+
+  #chat_container {
+    display: none;
+    margin-top: 0px !important;
+    padding-top: 10px;
+    background-color: #E6E6E6;
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    top: 0px;
+    left: 0px;
+    z-index: 10;
+    overflow: hidden;
+  }
+
+  #chat {
+    width: 100%;
+    height: 60vh;
+    max-height: 1000px;
+    font-size: 1.75em;
+  }
+  #chatbox, #send {
+    font-size: 2em;
+  }
+}
+
+
+@media only screen and (orientation: landscape)  {
+  .toggleChat {
+    display: none;
+  }
+}
+
+
+.userListItem {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  width: 48%;
+  min-height: 50px;
+  height: auto;
+  text-align: center;
+  margin: 0 auto;
+}
+
+#user1, #user3  { float: left; }
+#user2, #user4  { float: right; }
+
+.userListItem p {
+  word-wrap: break-word;
+  width: 90%;
+  margin: 0 auto;
+  text-align: center;
+
+}
+.userListItem span {
+  width: 100%;
+  margin: 0 auto;
+  text-align: center;
+  float: left;
+  clear: both;
+}
+
+.userListItem img {
+  width: auto;
+  height: 24%;
+  max-height: 100px;
+}
+
+@media only screen and (orientation: portrait) and (min-width: 1000px)  {
+  .userListItem {
+    width: 100%;
+  }
+    .userListItem img {
+      height: 50px;
+      width: auto;
+    }
+}
+
+@media only screen and (orientation: landscape) {
+  .userListItem img {
+    width: 90%;
+    max-width: 90px;
+    height: auto;
+    max-height: 120px;
+  }
+}
+
+.activePlayerName {
+  font-weight: bold;
+}
+
+#leave_game_form {
+  position: absolute;
+  margin-top: 100px;
+  width: 100%;
+  bottom: 3px;
+  text-align: center;
 }
 
 #wrapper {
@@ -50,34 +310,62 @@ ul {
 }
 
 #endgameboard {
-  text-align: center;
+  /*text-align: center;*/
   align-items: center;
   justify-content: center;
-  position: fixed; /* Sit on top of the page content */
   display: none; /* Hidden by default */
-  width: 40%; /* Full width (cover the whole page) */
-  height: 60%; /* Full height (cover the whole page) */
-  top: 20%;
-  left: 30%;
-  right: 30%;
-  bottom: 0;
-  background-color: lightgray; /* Black background with opacity */
-  z-index: 2; /* Specify a stack order in case you're using a different order for other elements */
-  cursor: pointer; /* Add a pointer on hover */
 }
 
-#score {
-  display: flex;
+#endgameboard nav {
+  width: 100%;
+  text-align: center;
+}
+
+#gameOverPic  {
+  width: 85%;
+  max-width: 750px;
+}
+
+.characterGameOver  {
+  min-width: 20px;
+  width: 10%;
+  max-width: 30px;
+  min-height: 20px;
+  height: auto;
+  max-height: 30px;
+  margin-right: 5px;
+}
+
+#finalScoreboard  {
   align-items: center;
-  justify-content: center;
-  width: 200px;
-  height: 50px;
-  border: 5px darkblue solid;
-  background: black;
-  margin-top: 20px;
-  color: white;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 2rem;
+  min-width: 200px;
+  width: 90%;
+  max-width: 600px;
+  height: 220px;
+  margin: 0 auto;
+}
+
+#playerInfo {
+  align-items: center;
+  width: 85%;
+  float: left;
+}
+
+#playerInfo p, #playerScore p {
+  align-items: center;
+  margin: 0px 0px 0px 0px;
+  height: 20%;
+  max-height: 100px;
+}
+
+#playerScore  {
+  height: 100%;
+  width: 15%;
+  float: left;
+}
+
+.score  {
+  line-height: 3em;
 }
 
 li{
@@ -88,14 +376,14 @@ li{
   margin-top: 20px;
 }
 
-#gamelobby, #users_lobby  {
-  text-align: center;
+#gamelobby  {
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
-#users  {
-  text-align: left;
-  list-style-type: none;
-  list-style-position: inside;
+#gamelobby, #users_lobby  {
+  word-break: break-all;
+  text-align: center;
 }
 
 .hide {
@@ -131,63 +419,56 @@ li{
 }
 
 .ghost {
-  position: relative;
-  border-radius: 10px 10px 2px 2px;
-  border: none;
-}
-
-.ghost::before {
-  content: '';
-  display: block;
-  position: absolute;
-  width: 3px;
-  height: 3px;
-  background: black;
-  border-radius: 50%;
-  left: 3px;
-  top: 5px;
-  border: 2px solid white;
-}
-
-.ghost::after {
-  content: '';
-  display: block;
-  position: absolute;
-  width: 3px;
-  height: 3px;
-  background: black;
-  border-radius: 50%;
-  right: 3px;
-  top: 5px;
-  border: 2px solid white;
-}
-
-.scared {
-  background: blue !important;
+  width: 100%;
+  height: 100%;
 }
 
 .ghost1 {
-  /*background: red;*/
-  background-color: black;
   background-image: url('red_ghost.png');
   background-size: cover;
-  filter: drop-shadow(1px 4px 1px #4d4d4d);
+  animation: float 3s ease-out infinite, wave 6s linear infinite;
+  filter: drop-shadow(0px 1px 2px #FF0000);
 }
 
 .ghost2 {
-  /*background: pink;*/
-  background-color: black;
   background-image: url('blue_ghost.png');
   background-size: cover;
-  filter: drop-shadow(1px 4px 1px #4d4d4d);
+  animation: float 3s ease-out infinite, wave 6s linear infinite;
+  filter: drop-shadow(0px 1px 2px #00F7FF);
 }
 
 .ghost3 {
-  /*background: cyan;*/
-  background-color: black;
   background-image: url('orange_ghost.png');
   background-size: cover;
-  filter: drop-shadow(1px 4px 1px #4d4d4d);
+  animation: float 3s ease-out infinite, wave 6s linear infinite;
+  filter: drop-shadow(0px 1px 2px #FCB445);
+}
+
+.edible_ghost {
+  filter: invert(1) grayscale(0.25);
+  animation: flash 2s ease-out forwards infinite;
+}
+
+@keyframes float  {
+  50% { transform: translate(0, -3px); }
+}
+
+@keyframes wave {
+  25% { transform: skew(3deg, 3deg); }
+  50% { transform: skew(0deg, 0deg); }
+  75% { transform: skew(-3deg, -3deg); }
+  100% { transform: skew(0deg, 0deg); }
+}
+
+
+@keyframes flash  {
+  5% { filter: invert(1); }
+  10% { filter: invert(.75); }
+  25% { filter: invert(.5); }
+  50% { filter: invert(0); }
+  75% { filter: invert(.5); }
+  90% { filter: invert(.75); }
+  95% { filter: invert(1); }
 }
 
 .pacman {
@@ -217,5 +498,29 @@ li{
       20px 20px,
       0 20px
     );
+  }
+}
+
+/*GameBoard resizing*/
+@media only screen and (orientation: landscape) {
+  @media only screen and (min-width: 1000px) and (max-width: 1500px)  {
+    #game {
+      transform: scale(1.10) translateY(25px);
+    }
+  }
+  @media only screen and (min-width: 1501px) and (max-width: 1800px)  {
+    #game {
+      transform: scale(1.15) translateY(30px);
+    }
+  }
+  @media only screen and (min-width: 1801px) and (max-width: 2000px)  {
+    #game {
+      transform: scale(1.2) translateY(40px);
+    }
+  }
+  @media only screen and (min-width: 2001px)  {
+    #game {
+      transform: scale(1.25) translateY(45px);
+    }
   }
 }
