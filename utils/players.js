@@ -14,8 +14,8 @@ function playerJoin(name, lobby, playerRole)  {
     prevIndex: -1,
     status: 0,
     score : 0
-  }
-
+  };
+  console.log(player.name);
   players.push(player);
 
   return player;
@@ -48,7 +48,7 @@ function setPlayerName(setName, lobby, playerRole) {
 
 // Get a player's name
 function getPlayerName(lobby, playerRole) {
-  return players.filter(player => player.lobby === lobby && player.playerRole == playerRole).name;
+  return getPlayer(lobby, playerRole).name;
 }
 
 // Set Direction of player (don't think this is used right now) // todo check this usage
@@ -110,19 +110,22 @@ function getStatus(lobby, playerRole)  {
 }
 
 // Set player status
-function setStatus(player, status)  {
+function setStatus(lobby, playerRole, status)  {
   let index = players.findIndex(player => player.lobby === lobby && player.playerRole === playerRole);
   players[index].status = status;
 }
 
 // Get prev position type (empty, dot, pill)
-function getPrevPosType(player)  {
-  return getPlayer(player).prevPosType;
+function getPrevPosType(lobby, playerRole)  {
+  return getPlayer(lobby, playerRole).prevPosType;
 }
 
 // Get prev position type (empty, dot, pill)
-function setPrevPosType(player, type)  {
+function setPrevPosType(lobby, playerRole, type)  {
+  console.log(getPlayerName(lobby, playerRole));
   let index = players.findIndex(player => player.lobby === lobby && player.playerRole === playerRole);
+  console.log(players[index]);
+  console.log('setting property of player: ' + players[index] + ' to: ' + type);
   players[index].prevPosType = type;
 }
 
