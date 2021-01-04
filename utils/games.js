@@ -57,8 +57,9 @@ function getGameBoard(lobby)  {
 }
 
 // Set the duration of a game update timer
-function setGameUpdateTimer(lobby, players, time)  {
-  getGame(lobby).updateTimer = setInterval(function() {game(lobby, players);}, time);
+function setGameUpdateTimer(lobby, gameUpdateTimer)  {
+
+  getGame(lobby).updateTimer = gameUpdateTimer;
 }
 
 // Get the duration of a game update timer

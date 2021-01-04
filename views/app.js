@@ -134,27 +134,27 @@ function updateScores(players)  {
 }
 
 // Initial drawing of gameBoard (Beginning of game)
-socket.on('loadBoard',({users, gameBoard}) => {
+socket.on('loadBoard',({players, gameBoard}) => {
   footerMsg.innerHTML = "Controls: Use the arrow keys to move your character.<br />";
   localBoard = gameBoard.slice(); // Save gameBoard to client side (walls are important here). This is going to be used to help reduce lag between
                                   // server and client because going forward we will only have the server send array updates
                                   // on non-stationary elements (everything except walls). This should reduce lag drastically - Christian
-  drawGameBoard(users, localBoard);
+  drawGameBoard(players, localBoard);
   startCountDown();
 });
 
 // gameUpdates from server (i.e. player position change). This is constant
-socket.on('gameUpdate', ({users, gameBoard}) => {
+socket.on('gameUpdate', ({players, gameBoard}) => {
   for (var i = j = 0; i < localBoard.length && j < gameBoard.length; i++) {
     if (localBoard[i] != 1) { // if element in localBoard is not a wall update it
       localBoard[i] = gameBoard[j++];
     }
   }
-  drawGameBoard(users, localBoard);
-  updateScores(users);
+  drawGameBoard(players, localBoard);
+  updateScores(players);
 });
 
-function drawGameBoard(users, gameBoard){
+function drawGameBoard(players, gameBoard){
   const board = document.querySelector('#game');
   const grid = [];
 
@@ -171,9 +171,9 @@ function drawGameBoard(users, gameBoard){
       if (SQUARE_LIST[square] == SQUARE_TYPE.GHOST1 || SQUARE_LIST[square] == SQUARE_TYPE.GHOST2 || SQUARE_LIST[square] == SQUARE_TYPE.GHOST3)  {
         var ghost = document.createElement('div');
         ghost.classList.add('square', SQUARE_LIST[square], 'ghost');
-        users.forEach(user => {
-          if (user.prevPosType == 8 && user.index == cells) div.classList.add('square', 'lair'); // Correctly set background color (this took forever to implement, but I got it done!)
-          if (user.status == 1) ghost.classList.add('edible_ghost');
+        players.forEach(player => {
+          if (player.prevPosType == 8 && player.index == cells) div.classList.add('square', 'lair'); // Correctly set background color (this took forever to implement, but I got it done!)
+          if (player.status == 1) ghost.classList.add('edible_ghost');
         });
 
 
@@ -184,12 +184,12 @@ function drawGameBoard(users, gameBoard){
         div.classList.add('square', SQUARE_LIST[square]);
         // Customize PacMan if that is the current square
         if (SQUARE_LIST[square] == SQUARE_TYPE.PACMAN)  { // customize pacman
-          users.forEach(user => {
-            if (user.playerRole == 4 && user.direction != 0) { // Pacman rotates depending on direction
+          players.forEach(player => {
+            if (player.playerRole == 4 && player.direction != 0) { // Pacman rotates depending on direction
               var rotation = 0;
-              if (user.direction == -1) rotation = 180; // facing left
-              else if (user.direction == 20) rotation = 90; // facing up
-              else if (user.direction == -20) rotation = 270; // facing down
+              if (player.direction == -1) rotation = 180; // facing left
+              else if (player.direction == 20) rotation = 90; // facing up
+              else if (player.direction == -20) rotation = 270; // facing down
               div.style.transform = "rotate(" + rotation + "deg)";
             }
           });

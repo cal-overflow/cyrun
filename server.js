@@ -223,6 +223,7 @@ io.on('connection', socket => {
 
   // Constant updates between clients and server (real-time game)
   function game(lobby, players) {
+    console.log('game function called');
     let gameBoard = getGameBoard(lobby);
     // Iterate through players and determine their new position based on their direction
     players.forEach(player => {
@@ -311,7 +312,7 @@ io.on('connection', socket => {
         gameBoard[getIndex(lobby, role)] = (role == 4)? 7: role + 2;
 
         io.to(lobby).emit('gameUpdate', {
-          players: getLobbyUsers(lobby),
+          players: getLobbyPlayers(lobby),
           gameBoard: gameBoard.filter(removeWalls) // Sends array without walls (sending stationary data is pointless and causes lag)
         });
       }
@@ -333,7 +334,8 @@ io.on('connection', socket => {
     }
     else {
       clearInterval(gameUpdateTimer);
-      setGameUpdateTimer(lobby, players, 220); // Loop function
+      gameUpdateTimer = setInterval(function() {game(lobby, players);}, 220);
+      setGameUpdateTimer(lobby, gameUpdateTimer); // Loop function
       //gameUpdateTimer = setInterval(function() {game(lobby, players);}, 220); //Loop function
     }
   }
@@ -353,9 +355,9 @@ io.on('connection', socket => {
     else if (gameBoard[index] == 6 || gameBoard[index] == 2) {
       if (player.playerRole == 4)  { // Check if player is pacman
         if (gameBoard[index] == 6) { // pacman consumed pill
-          statusTimer = setTimeout(() => statusChange(user), 10000);
+          statusTimer = setTimeout(() => statusChange(player.lobby), 10000);
           if (player.status == 0) {
-            statusChange(player); // change status (ghosts edible)
+            statusChange(player.lobby); // change status (ghosts edible)
             statusChange(statusTimer); // change status with timer
           }
           else { // Pacman recently consumed pill. Reset timer
@@ -475,13 +477,13 @@ io.on('connection', socket => {
   }
 
   // Handle Pacman eating a pill and becoming super
-  function statusChange(user)  {
-    getLobbyUsers(user.lobby).forEach((user) =>   {
-      if (getStatus(user.id) == 0)  {
-        setStatus(user.id, 1); // Ghosts are edible and Pacman has pill effect
+  function statusChange(lobby)  {
+    getLobbyPlayers(lobby).forEach(player =>   {
+      if (getStatus(lobby, player.playerRole) == 0)  {
+        setStatus(lobby, player.playerRole, 1); // Ghosts are edible and Pacman has pill effect
       }
       else {
-        setStatus(user.id, 0); // Ghosts are not edible and pacman doesn't have pill effect
+        setStatus(lobby, player.playerRole, 0); // Ghosts are not edible and pacman doesn't have pill effect
       }
     });
   }
@@ -503,12 +505,13 @@ io.on('connection', socket => {
 
   // Handle player direction changes (keypresses)
   socket.on('changeDirection', (direction) => {
-    const user = getCurrentUser(socket.id);
+    const lobby = getCurrentUser(socket.id).lobby;
+    const role = getCurrentUser(socket.id).playerRole;
 
-    if (direction === 'up') setQueue(user.id, -20);
-    else if (direction === 'right') setQueue(user.id, 1);
-    else if (direction === 'down') setQueue(user.id, 20);
-    else if (direction === 'left') setQueue(user.id, -1);
+    if (direction === 'up') setQueue(lobby, role, -20);
+    else if (direction === 'right') setQueue(lobby, role, 1);
+    else if (direction === 'down') setQueue(lobby, role, 20);
+    else if (direction === 'left') setQueue(lobby, role, -1);
   });
 
   // Lobby chat
@@ -534,28 +537,29 @@ io.on('connection', socket => {
   socket.on('disconnect', () => {
     if (getCurrentUser(socket.id) != undefined) {
       const user = getCurrentUser(socket.id);
-      console.log('finding player assigned to user ' + user.username + ': ' + getPlayer(user.lobby, user.playerRole).name);
-      // Set the CPU to this player and remember that the player for this playerRole is a CPU
-      cpus[user.playerRole] = 1;
-      roles[user.playerRole] = 2;
-      setPlayerName(('CPU ' + user.playerRole), user.lobby, user.playerRole);
+      let roles = getRoles(user.lobby).slice();
+      let cpus = getCpus(user.lobby).slice();
 
+      // Set a CPU to this player and remember that this player is now a CPU. Then save all of this to the game data.
+      roles[user.playerRole] = 2;
+      cpus[user.playerRole] = 1;
+      setPlayerName(('CPU ' + user.playerRole), user.lobby, user.playerRole);
+      setRoles(user.lobby, roles);
+      setCpus(user.lobby, cpus);
 
       const userLeft = userLeave(socket.id);
-      console.log(getLobbyUsers(user.lobby).length);
       if (getLobbyUsers(user.lobby).length < 1)  {
         for (let i = 1; i <= 4; i++)  {
           playerLeave(user.lobby, i);
         }
-        clearInterval(gameUpdateTimer); // Stop constant server-client communication
+        clearInterval(getGameUpdateTimer(user.lobby)); // Stop constant server-client communication
+        clearGame(user.lobby); // Clear the game data
       }
-
-      if (userLeft) {
+      else if (userLeft) {
         console.log(user.username + ' left the lobby\n');
         io.to(user.lobby).emit('message', user.username + ' left the lobby');
 
         // Send users and lobby info
-        console.log('updating player list after user left');
         io.to(user.lobby).emit('lobbyPlayers', {
           lobby: user.lobby,
           players: getLobbyPlayers(user.lobby)
