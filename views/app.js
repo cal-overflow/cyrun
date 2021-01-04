@@ -8,6 +8,7 @@ const chat = document.getElementById('chat');
 const chatbox = document.getElementById('chatbox')
 const sendChat = document.getElementById('send');
 const beginGameBtn = document.getElementById('begin_game');
+const votes = document.getElementById('start-game-votes');
 const footerMsg = document.getElementById('footerMsg');
 const countdown = document.getElementById('countdown');
 const gameGrid = document.querySelector('#game');
@@ -20,6 +21,7 @@ const playAgain = document.getElementById('playagain');
 
 var localBoard;
 var playerEnabled = -1;
+var voted = false;
 
 const GRID_SIZE = 20; // Grid size never changes (cells make up grid)
 var CELL_SIZE = 20; // This is never changed. The gameBoard is scaled up to fit larger screens in the stylesheet (CSS)
@@ -65,11 +67,15 @@ socket.on('failedEntrance', (reason) =>  {
   window.location.href="/index.html?reason=" + reason;
 });
 
-// This user is the first to join a lobby and will be given a 'begin game' button
-socket.on('startGameButton', () =>  {
-  beginGameBtn.style.display = "block";
+// Handle the vote feedback from server
+socket.on('voteCount', ({count, total}) =>  {
+  votes.innerText = count + '/' + total;
+  if (count == total) {
+    setTimeout(function() {beginGameBtn.style.display = 'none';}, 500);
+  }
 });
 
+// todo: delete this
 //Reloads the page once play again button is closed which preserves the lobby and username
 /*playAgain.onclick = function() {
   location.reload();
@@ -140,7 +146,6 @@ socket.on('loadBoard',({players, gameBoard}) => {
                                   // server and client because going forward we will only have the server send array updates
                                   // on non-stationary elements (everything except walls). This should reduce lag drastically - Christian
   drawGameBoard(players, localBoard);
-  startCountDown();
 });
 
 // gameUpdates from server (i.e. player position change). This is constant
@@ -200,7 +205,6 @@ function drawGameBoard(players, gameBoard){
       grid.push(div);
       cells++;
     });
-    // console.log(gameBoard); // Develoment purposes only. Delete this
 }
 
 function rotateDiv(position, degree){
@@ -327,7 +331,10 @@ sendChat.addEventListener('click', (e) => {
 // Begin the game
 beginGameBtn.addEventListener('click', (e) => {
   e.preventDefault();
-  socket.emit('beginGame');
+  if (!voted) {
+    socket.emit('voteStartGame');
+    voted = true;
+  }
 });
 
 // Leave lobby
@@ -344,8 +351,7 @@ document.addEventListener('keydown', function(event)	{
 }, true);
 
 
-
-function startCountDown(){
+io.on('startingGame', () => {
   // Start 5 second countdown to start game
   let countdown = document.getElementById('countdown');
   let second = 5;
@@ -357,12 +363,13 @@ function startCountDown(){
       playerEnabled = 1; // Enable player so that they can send direction update to server
     }
     else if (second == -10)  {
-      countdown.style.visibility = "hidden";
+      countdown.style.visibility = "hidden"; //todo uncomment this. (delete this comment though)
       clearInterval(interval);
     }
     second--;
   }, 1000);
-}
+});
+
 
 this.document.addEventListener('keydown', function(event) {
   if (!event.repeat)  { // event.repeat is true if user is holding down key (this causes issues with server)

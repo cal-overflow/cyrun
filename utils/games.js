@@ -8,6 +8,7 @@ function newGame(lobby) {
     timer: null,
     updateTimer: null,
     statusTimer: null,
+    votes: 0,
     // Array represents available roles (0's are empty roles, 1's are user occupied roles, and 2's are cpu occupied roles)
     roles: [1, 0, 0, 0, 0],
     // Array represents the players controlled by CPU's (0's are non-cpu players, 1's are CPU players, and 2's are ignored)
@@ -58,7 +59,6 @@ function getGameBoard(lobby)  {
 
 // Set the duration of a game update timer
 function setGameUpdateTimer(lobby, gameUpdateTimer)  {
-
   getGame(lobby).updateTimer = gameUpdateTimer;
 }
 
@@ -68,13 +68,23 @@ function getGameUpdateTimer(lobby)  {
 }
 
 // Set the duration of a status timer
-function setStatusTimer(lobby, time)  {
-  // todo
+function setStatusTimer(lobby, gameStatusTimer)  {
+  getGame(lobby).statusTimer = gameStatusTimer;
 }
 
 // Get the duration of a status timer
 function getStatusTimer(lobby)  {
-  // todo
+  return getGame(lobby).statusTimer;
+}
+
+// Tally a vote to start the game
+function tallyVote(lobby) {
+  getGame(lobby).votes++;
+}
+
+// Get the number of votes to start a game
+function getVotes(lobby)  {
+  return getGame(lobby).votes;
 }
 
 // Set a value in the array representing player roles
@@ -109,6 +119,8 @@ module.exports = {
   getGameUpdateTimer,
   setStatusTimer,
   getStatusTimer,
+  tallyVote,
+  getVotes,
   setRoles,
   getRoles,
   setCpus,

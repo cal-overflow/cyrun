@@ -2,7 +2,6 @@ const players = [];
 
 //There are always 4 players. If there are not even 4 players, the remaining players will be controlled by bots (CPU)
 function playerJoin(name, lobby, playerRole)  {
-  console.log('player ' + name + ' joined lobby ' + lobby + ' as role: ' + playerRole); // todo: delete this
   var player = {
     name,
     lobby,
@@ -15,7 +14,7 @@ function playerJoin(name, lobby, playerRole)  {
     status: 0,
     score : 0
   };
-  console.log(player.name);
+
   players.push(player);
 
   return player;
@@ -29,7 +28,6 @@ function getPlayer(lobby, playerRole) {
 // Player (player) leaves a game. This is more than likely not going to be used, since when a user leaves, it is re-assigned to a CPU
 function playerLeave(lobby, playerRole) {
   const index = players.findIndex(player => player.lobby === lobby && player.playerRole === playerRole);
-  console.log('removing player' + players[index].name);
   if (index !== -1) {
     return players.splice(index, 1)[0];
   }
@@ -122,10 +120,7 @@ function getPrevPosType(lobby, playerRole)  {
 
 // Get prev position type (empty, dot, pill)
 function setPrevPosType(lobby, playerRole, type)  {
-  console.log(getPlayerName(lobby, playerRole));
   let index = players.findIndex(player => player.lobby === lobby && player.playerRole === playerRole);
-  console.log(players[index]);
-  console.log('setting property of player: ' + players[index] + ' to: ' + type);
   players[index].prevPosType = type;
 }
 

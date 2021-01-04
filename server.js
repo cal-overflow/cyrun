@@ -16,6 +16,8 @@ const {
   getGameUpdateTimer,
   setStatusTimer,
   getStatusTimer,
+  tallyVote,
+  getVotes,
   setRoles,
   getRoles,
   setCpus,
@@ -151,8 +153,15 @@ io.on('connection', socket => {
       // Broadcast when a user connects
       socket.broadcast.to(user.lobby).emit('message', user.username + ' joined the lobby');
 
-      // Server is starting the game since 4 users have connected to lobby
-      if(getLobbyUsers(user.lobby).length == 4) {
+      if (getGameBoard(lobby) == null) createGameBoard(lobby);
+
+      socket.emit('loadBoard', {
+        players: getLobbyPlayers(lobby),
+        gameBoard: getGameBoard(lobby)
+      });
+
+      // Server is starting the game since 4 users have connected to lobby (doesn't start if timer has already begun. That means a match has started)
+      if(getLobbyUsers(user.lobby).length == 4 && getGame(lobby).timer == null) {
         beginGame(getLobbyPlayers(user.lobby), user.lobby);
       }
 
@@ -161,12 +170,16 @@ io.on('connection', socket => {
     }
   });
 
-  // The first user to join the lobby has requested that the game starts.
-  socket.on('beginGame', () =>  {
+  // A user has voted that the game should start
+  socket.on('voteStartGame', () =>  {
     let user = getCurrentUser(socket.id);
-    console.log('Lobby: ' + user.lobby + ' | A game has started');
-    beginGame(getLobbyPlayers(user.lobby), user.lobby);
-    // todo
+    tallyVote(user.lobby); // Tally the user's vote to start the game
+
+    // Start the game if there are n/n votes to start the game
+    if (getVotes(user.lobby) == getLobbyUsers(user.lobby).length)  {
+      beginGame(getLobbyPlayers(user.lobby), user.lobby);
+    }
+    io.to(user.lobby).emit('voteCount', {count: getVotes(user.lobby), total: getLobbyUsers(user.lobby).length});
   });
 
   // Choose a random level (1 or 2) and store a copy of that level as gameBoard
@@ -206,11 +219,10 @@ io.on('connection', socket => {
       }
     });
 
-    // Begin game
-    io.to(lobby).emit('loadBoard', ({players: players, gameBoard: gameBoard}));
-
     setGameBoard(lobby, gameBoard);
     startGame(lobby);
+
+    io.to(lobby).emit('startingGame');
 
     game(lobby, players);
   }
@@ -223,7 +235,6 @@ io.on('connection', socket => {
 
   // Constant updates between clients and server (real-time game)
   function game(lobby, players) {
-    console.log('game function called');
     let gameBoard = getGameBoard(lobby);
     // Iterate through players and determine their new position based on their direction
     players.forEach(player => {
@@ -348,6 +359,8 @@ io.on('connection', socket => {
   // Handle player movement over a pill or dot. Returns false if a unresponsive collision occured (i.e. two ghosts run into each other)
   function checkCollisions(gameBoard, index, player) {
     let players = getLobbyPlayers(player.lobby);
+    let statusTimer = getStatusTimer(player.lobby);
+
     // First check if player is colliding with nothing
     if (gameBoard[index] == 0 || (gameBoard[index] == 8 && player.playerRole != 4)) {
       return true;
@@ -355,14 +368,15 @@ io.on('connection', socket => {
     else if (gameBoard[index] == 6 || gameBoard[index] == 2) {
       if (player.playerRole == 4)  { // Check if player is pacman
         if (gameBoard[index] == 6) { // pacman consumed pill
-          statusTimer = setTimeout(() => statusChange(player.lobby), 10000);
           if (player.status == 0) {
-            statusChange(player.lobby); // change status (ghosts edible)
-            statusChange(statusTimer); // change status with timer
+            statusChange(player.lobby);
+            statusTimer = setTimeout(function() {statusChange(player.lobby);}, 10000);
+            setStatusTimer(player.lobby, statusTimer);
           }
-          else { // Pacman recently consumed pill. Reset timer
+          else { // Pacman recently consumed pill. Reset the 10 second countdown
             clearTimeout(statusTimer);
-            statusChange(statusTimer);
+            statusTimer = setTimeout(function() {statusChange(player.lobby);}, 10000);
+            setStatusTimer(player.lobby, statusTimer);
           }
         }
         incrementScore(player.lobby, player.playerRole, 1);
@@ -378,7 +392,7 @@ io.on('connection', socket => {
         if (getStatus(player.lobby, player.playerRole) == 1)  {
           // Check to see if the ghost that PacMan is colliding with is in a ghost Lair spot. If they are then PacMan will stop moving (return false)
           for (let i = 0; i < players.length; i++)  {
-            if (index == getIndex(player.lobby, players[i].playerRole) && getPrevPosType(player.lobby, players[i].id) == 8)  {
+            if (index == getIndex(player.lobby, players[i].playerRole) && getPrevPosType(player.lobby, players[i].playerRole) == 8)  {
               return false;
             }
           }
@@ -482,9 +496,7 @@ io.on('connection', socket => {
       if (getStatus(lobby, player.playerRole) == 0)  {
         setStatus(lobby, player.playerRole, 1); // Ghosts are edible and Pacman has pill effect
       }
-      else {
-        setStatus(lobby, player.playerRole, 0); // Ghosts are not edible and pacman doesn't have pill effect
-      }
+      else setStatus(lobby, player.playerRole, 0); // Ghosts are not edible and pacman doesn't have pill effect
     });
   }
 
