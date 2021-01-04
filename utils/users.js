@@ -1,11 +1,11 @@
 const users = [];
 
 //Join user
-function userJoin(id, username, lobby)  {
+function userJoin(id, name, lobby)  {
   var user = {id,
-                username,
+                name,
                 lobby,
-                playerRole : -1
+                player: -1
               };
 
   users.push(user);
@@ -33,14 +33,14 @@ function getLobbyUsers(lobby) {
 }
 
 // Set player role (1-4)
-function setPlayerRole(id, number){
+function setPlayerAssignment(id, number){
   let index = users.findIndex(user => user.id === id);
-  users[index].playerRole = number;
+  users[index].player = number;
 }
 
 // Get player role
-function getPlayerRole(id)  {
-  return users.find(user => user.id === id).playerRole;
+function getPlayerAssignment(id)  {
+  return users.find(user => user.id === id).player;
 }
 
 module.exports = {
@@ -48,6 +48,6 @@ module.exports = {
   getCurrentUser,
   userLeave,
   getLobbyUsers,
-  setPlayerRole,
-  getPlayerRole
+  setPlayerAssignment,
+  getPlayerAssignment
 };

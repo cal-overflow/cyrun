@@ -71,11 +71,11 @@ socket.on('failedEntrance', (reason) =>  {
 socket.on('voteCount', ({count, total}) =>  {
   votes.innerText = count + '/' + total;
   if (count == total) {
-    setTimeout(function() {beginGameBtn.style.display = 'none';}, 500);
+    setTimeout(function() {beginGameBtn.style.display = 'none';}, 1500);
   }
 });
 
-// todo: delete this
+// todo: change how this works
 //Reloads the page once play again button is closed which preserves the lobby and username
 /*playAgain.onclick = function() {
   location.reload();
@@ -103,7 +103,7 @@ function outputLobbyName(lobby) {
 // Display players
 function outputPlayers(players){
   players.forEach(player => {
-    let playerDisplay = document.getElementById('user' + player.playerRole);
+    let playerDisplay = document.getElementById('user' + player.role);
     let p = document.createElement('p');
     let img = document.createElement('img');
     let name = document.createElement('span');
@@ -116,13 +116,13 @@ function outputPlayers(players){
       name.setAttribute('class', 'activePlayerName');
     }
 
-    if(player.playerRole == 1)
+    if(player.role == 1)
       img.src = "red_ghost.png";
-    else if(player.playerRole == 2)
+    else if(player.role == 2)
       img.src = "blue_ghost.png";
-    else if(player.playerRole == 3)
+    else if(player.role == 3)
       img.src = "orange_ghost.png";
-    else if(player.playerRole == 4)
+    else if(player.role == 4)
       img.src = "pacman.png";
 
     playerDisplay.innerHTML = "";
@@ -135,7 +135,7 @@ function outputPlayers(players){
 
 function updateScores(players)  {
   players.forEach(player => {
-      userList.children[player.playerRole - 1].children[0].children[2].innerHTML = "Score: " + player.score;
+      userList.children[player.role - 1].children[0].children[2].innerHTML = "Score: " + player.score;
   });
 }
 
@@ -149,17 +149,17 @@ socket.on('loadBoard',({players, gameBoard}) => {
 });
 
 // gameUpdates from server (i.e. player position change). This is constant
-socket.on('gameUpdate', ({players, gameBoard}) => {
+socket.on('gameUpdate', ({players, gameBoard, status}) => {
   for (var i = j = 0; i < localBoard.length && j < gameBoard.length; i++) {
     if (localBoard[i] != 1) { // if element in localBoard is not a wall update it
       localBoard[i] = gameBoard[j++];
     }
   }
-  drawGameBoard(players, localBoard);
+  drawGameBoard(players, localBoard, status);
   updateScores(players);
 });
 
-function drawGameBoard(players, gameBoard){
+function drawGameBoard(players, gameBoard, status){
   const board = document.querySelector('#game');
   const grid = [];
 
@@ -178,7 +178,7 @@ function drawGameBoard(players, gameBoard){
         ghost.classList.add('square', SQUARE_LIST[square], 'ghost');
         players.forEach(player => {
           if (player.prevPosType == 8 && player.index == cells) div.classList.add('square', 'lair'); // Correctly set background color (this took forever to implement, but I got it done!)
-          if (player.status == 1) ghost.classList.add('edible_ghost');
+          if (status == 1) ghost.classList.add('edible_ghost');
         });
 
 
@@ -190,7 +190,7 @@ function drawGameBoard(players, gameBoard){
         // Customize PacMan if that is the current square
         if (SQUARE_LIST[square] == SQUARE_TYPE.PACMAN)  { // customize pacman
           players.forEach(player => {
-            if (player.playerRole == 4 && player.direction != 0) { // Pacman rotates depending on direction
+            if (player.role == 4 && player.direction != 0) { // Pacman rotates depending on direction
               var rotation = 0;
               if (player.direction == -1) rotation = 180; // facing left
               else if (player.direction == 20) rotation = 90; // facing up
@@ -238,16 +238,17 @@ function printChatMessage(p)  {
 }
 
 // gameOver from server
-socket.on('gameOver', ({lobby, users, gameTime}) => {
-  socket.emit('ackGameEnd', {id : socket.id});
+socket.on('gameOver', ({lobby, players, gameTime}) => {
+  //socket.emit('ackGameEnd', {id : socket.id}); // todo: handle gameOver process
   playerEnabled = -1; // Player movement disabled
+  voted = false; // reset voting
   let ghostTotal = 0;
   let pacmanScore = 0;
-  users.forEach((user) => {
-    if (user.playerRole != 4)
-      ghostTotal += user.score;
+  players.forEach((player) => {
+    if (player.role != 4)
+      ghostTotal += player.score;
     else
-      pacmanScore = user.score;
+      pacmanScore = player.score;
   });
 
     let img = document.createElement('img');
@@ -272,11 +273,11 @@ socket.on('gameOver', ({lobby, users, gameTime}) => {
   playerInfo.setAttribute('id', 'playerInfo');
   let playerScore = document.createElement('div');
   playerScore.setAttribute('id', 'playerScore');
-  users.forEach((user) => {
-    let player = document.createElement('p');
+  players.forEach((player) => {
+    let playerP = document.createElement('p');
     let score = document.createElement('p');
 
-    switch (user.playerRole)  {
+    switch (player.role)  {
       case 1:
         img.src = "red_ghost.png";
         break;
@@ -290,15 +291,15 @@ socket.on('gameOver', ({lobby, users, gameTime}) => {
         img.src = "pacman.png";
         break;
     }
-    img.setAttribute('title', user.username);
-    if (user.playerRole != 4) {
-      player.style.backgroundColor = "#cfcfcf";
+    img.setAttribute('title', player.name);
+    if (player.role != 4) {
+      playerP.style.backgroundColor = "#cfcfcf";
       score.style.backgroundColor = "#cfcfcf";
     }
 
-    player.innerHTML += img.outerHTML + user.username + ": ";
-    score.innerHTML = "<span class='score'>" + user.score + "</span>";
-    playerInfo.appendChild(player);
+    playerP.innerHTML += img.outerHTML + player.name + ": ";
+    score.innerHTML = "<span class='score'>" + player.score + "</span>";
+    playerInfo.appendChild(playerP);
     playerScore.appendChild(score);
   });
   // Create a Ghost Total score section at the bottom of the scoreboard
@@ -328,6 +329,11 @@ sendChat.addEventListener('click', (e) => {
   }
 });
 
+// Develoment purposes only. Delete this. todo
+function endgame()  {
+  socket.emit('simGameOver');
+}
+
 // Begin the game
 beginGameBtn.addEventListener('click', (e) => {
   e.preventDefault();
@@ -350,26 +356,34 @@ document.addEventListener('keydown', function(event)	{
 	}
 }, true);
 
-
-io.on('startingGame', () => {
-  // Start 5 second countdown to start game
-  let countdown = document.getElementById('countdown');
-  let second = 5;
+// The server is telling the clients that a game is starting
+socket.on('startingGame', () => {
+  playerEnabled = -1; // Reset player enabled in the event of a game reset
+  let second = 5; // Start 5 second countdown to start game
   var interval = setInterval(function() {
     if(second > 0)
-      countdown.innerHTML = "Match starting in: " + second;
-    else if(second == 0)  {
-      countdown.innerHTML = "GO!";
-      playerEnabled = 1; // Enable player so that they can send direction update to server
-    }
-    else if (second == -10)  {
-      countdown.style.visibility = "hidden"; //todo uncomment this. (delete this comment though)
+      countdown.innerHTML = "Match starting in: " + second--;
+    else {
+      gameStarted();
       clearInterval(interval);
     }
-    second--;
   }, 1000);
 });
 
+// The server is telling this client that a game is in progress.
+socket.on('gameStarted', () => {
+    gameStarted();
+});
+
+// Ensure that the player is able to move since the game is in progress. Also handle countdown.
+function gameStarted()  {
+  playerEnabled = 1;
+  countdown.innerHTML = "GO!";
+  var timeout = setTimeout(function() {
+    countdown.style.visibility = "hidden";
+  }, 10000);
+  beginGameBtn.style.display = "none";
+}
 
 this.document.addEventListener('keydown', function(event) {
   if (!event.repeat)  { // event.repeat is true if user is holding down key (this causes issues with server)

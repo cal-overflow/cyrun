@@ -9,6 +9,8 @@ function newGame(lobby) {
     updateTimer: null,
     statusTimer: null,
     votes: 0,
+    status: 0,
+    gameOver: false,
     // Array represents available roles (0's are empty roles, 1's are user occupied roles, and 2's are cpu occupied roles)
     roles: [1, 0, 0, 0, 0],
     // Array represents the players controlled by CPU's (0's are non-cpu players, 1's are CPU players, and 2's are ignored)
@@ -41,9 +43,15 @@ function startGame(lobby) {
 
 // End a game. Stop and return the game timer
 function endGame(lobby) {
+  getGame(lobby).gameOver = true;
   getGame(lobby).timer = (new Date()) - getGame(lobby).timer - 5000; // Subtract 5 second delay at beginning of game
   getGame(lobby).timer /= 1000;
   return Math.round(getGame(lobby).timer);
+}
+
+// Get a game's gameOver status
+function getGameOver(lobby) {
+  return getGame(lobby).gameOver;
 }
 
 // Set a game's board
@@ -87,6 +95,16 @@ function getVotes(lobby)  {
   return getGame(lobby).votes;
 }
 
+// Switch the status of the game (0 if normal, 1 if pacman has consumed pill)
+function switchStatus(lobby)  {
+  getGame(lobby).status = (getStatus(lobby) == 0)? 1: 0;
+}
+
+// Get the status of the game (0 if normal, 1 if pacman has consumed pill)
+function getStatus(lobby)  {
+  return getGame(lobby).status;
+}
+
 // Set a value in the array representing player roles
 function setRoles(lobby, roles) {
   getGame(lobby).roles = roles;
@@ -113,6 +131,7 @@ module.exports = {
   clearGame,
   startGame,
   endGame,
+  getGameOver,
   setGameBoard,
   getGameBoard,
   setGameUpdateTimer,
@@ -121,6 +140,8 @@ module.exports = {
   getStatusTimer,
   tallyVote,
   getVotes,
+  switchStatus,
+  getStatus,
   setRoles,
   getRoles,
   setCpus,

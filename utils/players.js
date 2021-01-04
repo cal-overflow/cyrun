@@ -1,17 +1,16 @@
 const players = [];
 
 //There are always 4 players. If there are not even 4 players, the remaining players will be controlled by bots (CPU)
-function playerJoin(name, lobby, playerRole)  {
+function playerJoin(name, lobby, role)  {
   var player = {
     name,
     lobby,
-    playerRole,
+    role,
     index: -1,
     direction: 0,
     queue: 0,
     prevPosType: 0,
     prevIndex: -1,
-    status: 0,
     score : 0
   };
 
@@ -21,13 +20,13 @@ function playerJoin(name, lobby, playerRole)  {
 }
 
 // Get a player given the lobby and player role
-function getPlayer(lobby, playerRole) {
-  return players.find(player => player.lobby === lobby && player.playerRole === playerRole);
+function getPlayer(lobby, role) {
+  return players.find(player => player.lobby === lobby && player.role === role);
 }
 
 // Player (player) leaves a game. This is more than likely not going to be used, since when a user leaves, it is re-assigned to a CPU
-function playerLeave(lobby, playerRole) {
-  const index = players.findIndex(player => player.lobby === lobby && player.playerRole === playerRole);
+function playerLeave(lobby, role) {
+  const index = players.findIndex(player => player.lobby === lobby && player.role === role);
   if (index !== -1) {
     return players.splice(index, 1)[0];
   }
@@ -39,99 +38,89 @@ function getLobbyPlayers(lobby)  {
 }
 
 // Set the name of a player
-function setPlayerName(setName, lobby, playerRole) {
-  let index = players.findIndex(player => player.lobby === lobby && player.playerRole === playerRole);
+function setPlayerName(setName, lobby, role) {
+  let index = players.findIndex(player => player.lobby === lobby && player.role === role);
   players[index].name = setName;
 }
 
 // Get a player's name
-function getPlayerName(lobby, playerRole) {
-  return getPlayer(lobby, playerRole).name;
+function getPlayerName(lobby, role) {
+  return getPlayer(lobby, role).name;
 }
 
 // Set Direction of player (don't think this is used right now) // todo check this usage
-function setDirection(lobby, playerRole, xDir, yDir){
-  let index = players.findIndex(player => player.lobby === lobby && player.playerRole === playerRole);
+function setDirection(lobby, role, xDir, yDir){
+  let index = players.findIndex(player => player.lobby === lobby && player.role === role);
   players[index].xDirection = xDir;
   players[index].yDirection = yDir;
 }
 
 // Get index of player (from player)
-function getIndex(lobby, playerRole) {
-  return getPlayer(lobby, playerRole).index;
+function getIndex(lobby, role) {
+  return getPlayer(lobby, role).index;
 }
 
 // Set index of player (player)
-function setIndex(lobby, playerRole, i)  {
-  let index = players.findIndex(player => player.lobby === lobby && player.playerRole === playerRole);
+function setIndex(lobby, role, i)  {
+  let index = players.findIndex(player => player.lobby === lobby && player.role === role);
   players[index].index = i;
 }
 
 // Get the direction of a player (0 none, -20 up, 1 right, 20 down, -1 left)
-function getDirection(lobby, playerRole) {
-  if(getPlayer(lobby, playerRole) != undefined)
-    return getPlayer(lobby, playerRole).direction;
+function getDirection(lobby, role) {
+  if(getPlayer(lobby, role) != undefined)
+    return getPlayer(lobby, role).direction;
 }
 
 // Set the direction of a player (0 none, -20 up, 1 right, 20 down, -1 left)
-function setDirection(lobby, playerRole, direction)  {
-  let index = players.findIndex(player => player.lobby === lobby && player.playerRole === playerRole);
+function setDirection(lobby, role, direction)  {
+  let index = players.findIndex(player => player.lobby === lobby && player.role === role);
   players[index].direction = direction;
 }
 
 // Get the queue of a player (next direction) (0 none, -20 up, 1 right, 20 down, -1 left)
-function getQueue(lobby, playerRole) {
-  if(getPlayer(lobby, playerRole) != undefined)
-    return getPlayer(lobby, playerRole).queue;
+function getQueue(lobby, role) {
+  if(getPlayer(lobby, role) != undefined)
+    return getPlayer(lobby, role).queue;
 }
 
 // Set the direction of a player (0 none, -20 up, 1 right, 20 down, -1 left)
-function setQueue(lobby, playerRole, direction)  {
-  let index = players.findIndex(player => player.lobby === lobby && player.playerRole === playerRole);
+function setQueue(lobby, role, direction)  {
+  let index = players.findIndex(player => player.lobby === lobby && player.role === role);
   players[index].queue = direction;
 }
 
-// Get prevIndex of player (from lobby, playerRole)
-function getPrevIndex(lobby, playerRole) {
-  return getPlayer(lobby, playerRole).prevIndex;
+// Get prevIndex of player (from lobby, role)
+function getPrevIndex(lobby, role) {
+  return getPlayer(lobby, role).prevIndex;
 }
 
-// Set prevIndex of player (lobby, playerRole)
-function setPrevIndex(lobby, playerRole, i)  {
-  let index = players.findIndex(player => player.lobby === lobby && player.playerRole === playerRole);
+// Set prevIndex of player (lobby, role)
+function setPrevIndex(lobby, role, i)  {
+  let index = players.findIndex(player => player.lobby === lobby && player.role === role);
   players[index].prevIndex = i;
 }
 
-// Get player status
-function getStatus(lobby, playerRole)  {
-  return getPlayer(lobby, playerRole).status;
-}
 
-// Set player status
-function setStatus(lobby, playerRole, status)  {
-  let index = players.findIndex(player => player.lobby === lobby && player.playerRole === playerRole);
-  players[index].status = status;
+// Get prev position type (empty, dot, pill)
+function getPrevPosType(lobby, role)  {
+  return getPlayer(lobby, role).prevPosType;
 }
 
 // Get prev position type (empty, dot, pill)
-function getPrevPosType(lobby, playerRole)  {
-  return getPlayer(lobby, playerRole).prevPosType;
-}
-
-// Get prev position type (empty, dot, pill)
-function setPrevPosType(lobby, playerRole, type)  {
-  let index = players.findIndex(player => player.lobby === lobby && player.playerRole === playerRole);
+function setPrevPosType(lobby, role, type)  {
+  let index = players.findIndex(player => player.lobby === lobby && player.role === role);
   players[index].prevPosType = type;
 }
 
 // Get score of a player
-function getScore(lobby, playerRole) {
-  return getPlayer(lobby, playerRole).score;
+function getScore(lobby, role) {
+  return getPlayer(lobby, role).score;
 }
 
 // Increment score of a player
-function incrementScore(lobby, playerRole, amount) {
-  let index = players.findIndex(player => player.lobby === lobby && player.playerRole === playerRole);
+function incrementScore(lobby, role, amount) {
+  let index = players.findIndex(player => player.lobby === lobby && player.role === role);
   players[index].score += amount;
 }
 
@@ -152,8 +141,6 @@ module.exports = {
   setPrevIndex,
   getPrevPosType,
   setPrevPosType,
-  getStatus,
-  setStatus,
   getScore,
   incrementScore
 }
