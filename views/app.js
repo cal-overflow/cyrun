@@ -8,7 +8,6 @@ const chat = document.getElementById('chat');
 const chatbox = document.getElementById('chatbox')
 const sendChat = document.getElementById('send');
 const beginGameBtn = document.getElementById('begin_game');
-const votes = document.getElementById('start-game-votes');
 const footerMsg = document.getElementById('footerMsg');
 const countdown = document.getElementById('countdown');
 const gameGrid = document.querySelector('#game');
@@ -22,6 +21,8 @@ const playAgain = document.getElementById('playagain');
 var localBoard;
 var playerEnabled = -1;
 var voted = false;
+var timer;
+var interval;
 
 const GRID_SIZE = 20; // Grid size never changes (cells make up grid)
 var CELL_SIZE = 20; // This is never changed. The gameBoard is scaled up to fit larger screens in the stylesheet (CSS)
@@ -69,22 +70,23 @@ socket.on('failedEntrance', (reason) =>  {
 
 // Handle the vote feedback from server
 socket.on('voteCount', ({count, total}) =>  {
-  votes.innerText = count + '/' + total;
+  if (voted) {
+    beginGameBtn.innerText = 'Votes: ' + count + '/' + total;
+    beginGameBtn.style.backgroundColor = '#343a40';
+  }
+  else {
+    beginGameBtn.innerText = 'Begin Game';
+    beginGameBtn.style.backgroundColor = '#0069d9';
+  }
   if (count == total) {
     setTimeout(function() {beginGameBtn.style.display = 'none';}, 1500);
   }
 });
 
-// todo: change how this works
-//Reloads the page once play again button is closed which preserves the lobby and username
-/*playAgain.onclick = function() {
-  location.reload();
-};*/
-
 // Initial lobby and User/player info display
 socket.on('initDisplayLobbyInfo', ({lobby, players}) => {
-  countdown.innerHTML = "Waiting for more players...";
-  footerMsg.innerHTML = "The game will begin when either the first player to have joined presses the start button or four players join the lobby.<br />";
+  countdown.style.visibility = "visible"; // Ensure countdown is visible (it is set to hidden after each game)
+  footerMsg.innerHTML = "Vote to Begin the game. The game will start automatically when four players have joined the lobby.<br />";
 
   outputLobbyName(lobby);
   outputPlayers(players);
@@ -141,7 +143,6 @@ function updateScores(players)  {
 
 // Initial drawing of gameBoard (Beginning of game)
 socket.on('loadBoard',({players, gameBoard}) => {
-  footerMsg.innerHTML = "Controls: Use the arrow keys to move your character.<br />";
   localBoard = gameBoard.slice(); // Save gameBoard to client side (walls are important here). This is going to be used to help reduce lag between
                                   // server and client because going forward we will only have the server send array updates
                                   // on non-stationary elements (everything except walls). This should reduce lag drastically - Christian
@@ -180,7 +181,6 @@ function drawGameBoard(players, gameBoard, status){
           if (player.prevPosType == 8 && player.index == cells) div.classList.add('square', 'lair'); // Correctly set background color (this took forever to implement, but I got it done!)
           if (status == 1) ghost.classList.add('edible_ghost');
         });
-
 
         div.appendChild(ghost); // This allows for us to have the ghost seperate from the background (this is important for a clean appearance)
       }
@@ -240,6 +240,7 @@ function printChatMessage(p)  {
 // gameOver from server
 socket.on('gameOver', ({lobby, players, gameTime}) => {
   //socket.emit('ackGameEnd', {id : socket.id}); // todo: handle gameOver process
+  finalScoreboard.innerHTML = ""; // Clear scorebaord
   playerEnabled = -1; // Player movement disabled
   voted = false; // reset voting
   let ghostTotal = 0;
@@ -343,6 +344,16 @@ beginGameBtn.addEventListener('click', (e) => {
   }
 });
 
+// Replaces the scoreboard with the player list and brings back the 'begin game' button
+playAgain.onclick = function() {
+  gameOver.style.display = "none";
+  beginGameBtn.style.display = userSection.style.display = "block";
+  socket.emit('reJoinGame');
+  beginGameBtn.innerText = 'Begin Game';
+    clearTimeout(timer);
+    clearInterval(interval);
+};
+
 // Leave lobby
 leaveLobby.addEventListener('click', (e) =>  {
   e.preventDefault();
@@ -360,7 +371,7 @@ document.addEventListener('keydown', function(event)	{
 socket.on('startingGame', () => {
   playerEnabled = -1; // Reset player enabled in the event of a game reset
   let second = 5; // Start 5 second countdown to start game
-  var interval = setInterval(function() {
+  interval = setInterval(function() {
     if(second > 0)
       countdown.innerHTML = "Match starting in: " + second--;
     else {
@@ -372,17 +383,18 @@ socket.on('startingGame', () => {
 
 // The server is telling this client that a game is in progress.
 socket.on('gameStarted', () => {
-    gameStarted();
+  gameStarted();
 });
 
 // Ensure that the player is able to move since the game is in progress. Also handle countdown.
 function gameStarted()  {
   playerEnabled = 1;
   countdown.innerHTML = "GO!";
-  var timeout = setTimeout(function() {
+  timer = setTimeout(function() {
     countdown.style.visibility = "hidden";
   }, 10000);
   beginGameBtn.style.display = "none";
+  footerMsg.innerHTML = "Controls: Use the arrow keys to move your character.<br />";
 }
 
 this.document.addEventListener('keydown', function(event) {

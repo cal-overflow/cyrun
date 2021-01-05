@@ -155,16 +155,25 @@ footer p  {
   html, body  {
     overflow-x: hidden;
   }
-  .toggleChat, #by, #countdown, #leave_game {
-    font-size: 2em;
+  .toggleChat, #by, #countdown  {
+    font-size: 1.75em;
     margin: 10px auto 10px auto;
-    display: block;
+    display: flex;
+  }
+
+  #begin_game, #leave_game  {
+    font-size: 1.75em;
+    margin: 5px auto 5px auto;
+
   }
 
   @media only screen and (min-width: 951px) {
     #users_lobby  {
-      min-height: 620px;
-      height: 650px;
+      min-height: 680px;
+      height: auto;
+    }
+    #users  {
+      height: auto;
     }
   }
 
@@ -211,7 +220,6 @@ footer p  {
     display: none;
   }
 }
-
 
 .userListItem {
   padding-top: 10px;
@@ -270,9 +278,8 @@ footer p  {
   font-weight: bold;
 }
 
-#leave_game_form {
-  position: absolute;
-  margin-top: 100px;
+#game_button_form {
+  margin-top: 10px;
   width: 100%;
   bottom: 3px;
   text-align: center;
@@ -416,6 +423,17 @@ li{
   background: white;
   border: 5px solid black;
   border-radius: 50%;
+}
+
+/* in-game-name (above character) */
+.ign  {
+  animation: none !important;
+  margin-bottom: 4px;
+  overflow: visible;
+  white-space: nowrap;
+  text-align: center;
+  font-size: .5em;
+  color: white;
 }
 
 .ghost {

@@ -43,6 +43,11 @@
     <!-- Right Column -->
     <div class="col-lg-3 pt-38">
       <div id="users_lobby" class="bg-light mt-2 rounded p-2 border border-dark border-5">
+        <form id="game_button_form" action="index.html" class="form-group">
+          <button class="btn btn-primary center-text" id="begin_game">Begin Game</span></button>
+          <button type="submit" class="btn btn-primary" id="leave_game" onclick="location.href = 'index.html'">Leave game</button>
+          <!--<button type="button" class="btn btn-primary" onclick="endgame();">End Game</button>-->
+        </form>
         <h4>Players</h4>
         <div id="users">
           <div id="user1" class="userListItem"></div>
@@ -50,12 +55,8 @@
           <div id="user3" class="userListItem"></div>
           <div id="user4" class="userListItem"></div>
         </div>
-        <form id="leave_game_form" action="index.html" class="form-group">
-          <button class="btn btn-primary center-text" id="begin_game">Begin Game <span id="start-game-votes"></span></button>
-          <button type="submit" class="btn btn-primary" id="leave_game" onclick="location.href = 'index.html'">Leave game</button>
-          <button type="button" class="btn btn-primary" onclick="endgame();">End Game</button>
-        </form>
       </div>
+
       <div id="endgameboard" class="bg-light mt-2 rounded p-2 border border-dark border-5">
         <nav class="navbar navbar-light bg-dark">
           <a class="navbar-brand mx-auto">

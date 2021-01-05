@@ -70,10 +70,12 @@ app.use(express.static('views')); // Set static folder to /views
 
 // Run when client connects
 io.on('connection', socket => {
+  // Send user list of lobbies
   socket.on('retrieveLobbies', () =>  {
     socket.emit('lobbyList', (io.sockets.adapter.rooms));
   });
 
+  // Handle user joining lobby
   socket.on('joinLobby', ({username, lobby}) => {
     // Check the lobby to ensure there will not be two users with the same name or there are already 4 users in the lobby
     let usersInLobby = getLobbyUsers(lobby);
@@ -97,103 +99,11 @@ io.on('connection', socket => {
       socket.join(user.lobby);
       const users = getLobbyUsers(user.lobby);
 
-      // Welcome current user to lobby.
-      socket.emit('message', 'Welcome to CyRun lobby ' + user.lobby);
-      console.log('Lobby: ' + user.lobby + ' | ' + user.name + ' has joined'); // Development purposes only. DELETE THIS
+      console.log('Lobby: ' + user.lobby + '  | ' + user.name + ' has joined');
+      socket.emit('message', 'Welcome to CyRun lobby ' + user.lobby); // Welcome current user to lobby.
+      socket.broadcast.to(user.lobby).emit('message', user.name + ' joined the lobby'); // Broadcast that a user connected
 
-      // If this is the first user in the lobby create a game for the lobby.
-      if (getGame(lobby) == undefined) newGame(lobby);
-
-      // Copy player roles and cpus
-      let roles = getRoles(lobby).slice();
-      let cpus = getCpus(lobby).slice();
-
-      // Set random player roles
-      let role = 0;
-      while (roles[role] == 1)  { // find a new role if this one is already taken
-        role = Math.floor(Math.random() * 4) + 1;
-      }
-      setPlayerAssignment(user.id, role);
-      roles[role] = 1;
-
-      // If this is the first user to join this lobby, give them the 'begin game' button and create all 4 players (3 to be filled or controlled by server)
-      if (getLobbyUsers(lobby).length == 1) {
-        socket.emit('startGameButton');
-        // Link player and user together (example: user.playerAssignment --> player.role)
-        const player = playerJoin(username, lobby, getPlayerAssignment(user.id));
-
-        // Fill remaining players with CPU
-        for (let i = 2; i <= 4; i++)  {
-          // Set random player roles (roles[i] = 0 if role is not taken, 1 if it is assigned to a user, and 2 if it is only assigned to a player, but not yet a user)
-          let role = 0;
-          while (roles[role] == 1 || roles[role] == 2)  { // find a new role if this one is already taken
-            role = Math.floor(Math.random() * 4) + 1;
-          }
-          roles[role] = 2;
-
-          if (getLobbyPlayers(lobby).length < i)  {
-            let cpu = playerJoin(('CPU ' + role), lobby, role);
-            cpus[role] = 1;
-          }
-        }
-      } // This is not the first player to join the lobby, so we need to assign them a player (replacing/removing CPU of their assigned role)
-      else {
-        setPlayerName(username, lobby, role);
-        cpus[role] = 0;
-
-        // Emit votes
-        if (getVotes(lobby) > 0 && getGame(lobby).timer == null)
-        socket.emit('voteCount', {count: getVotes(lobby), total: getLobbyUsers(lobby).length});
-      }
-
-      // update game-saved roles and cpus
-      setRoles(lobby, roles);
-      setCpus(lobby, cpus);
-
-      // Send users and lobby info
-      io.to(user.lobby).emit('initDisplayLobbyInfo', {
-        lobby: user.lobby,
-        players: getLobbyPlayers(user.lobby)
-      });
-
-      // If the game is in progress, let the client know
-      if (getGame(lobby).timer != null && !getGameOver(lobby)) {
-        socket.emit('gameStarted');
-      }
-
-      // Broadcast when a user connects
-      socket.broadcast.to(user.lobby).emit('message', user.name + ' joined the lobby');
-
-      // Create a gameboard and set players spawn points if not already done.
-      if (getGameBoard(lobby) == null) {
-        let gameBoard = createGameBoard(lobby); // Create gameboard
-        let players = getLobbyPlayers(lobby);
-
-        // Set player spawn points
-        players.forEach(player => {
-          if (player.role != 4) { // If player is a ghost spawn in ghostlair
-            respawn(gameBoard, player, lobby, false);
-            setPrevIndex(lobby, player.role, getIndex(player.lobby, player.role));
-            gameBoard[getIndex(lobby, player.role)] = player.role + 2;
-            setPrevPosType(lobby, player.role, 8);
-          }
-          else { // IF player is pacman spawn accordingly
-            var pacmanStart = Math.floor(Math.random() * (292 - 288)) + 288;
-            setIndex(lobby, player.role, pacmanStart);
-            setPrevIndex(lobby, player.role, pacmanStart);
-            gameBoard[getIndex(lobby, player.role)] = 7;
-            setPrevPosType(lobby, player.role, 0);
-          }
-        });
-
-        // Save the new gameBoard with players to the gameData
-        setGameBoard(lobby, gameBoard);
-      }
-
-      socket.emit('loadBoard', {
-        players: getLobbyPlayers(lobby),
-        gameBoard: getGameBoard(lobby)
-      });
+      joinGame(user, lobby);
 
       // Server is starting the game since 4 users have connected to lobby (doesn't start if timer has already begun. That means a match has started)
       if(getLobbyUsers(user.lobby).length == 4 && getGame(lobby).timer == null) {
@@ -205,16 +115,117 @@ io.on('connection', socket => {
     }
   });
 
+  socket.on('reJoinGame', () => {
+    let user = getCurrentUser(socket.id);
+    joinGame(user, user.lobby, false);
+  });
+
+// Handle a user joining a game. Default value for firstGame is true. It is false when players are re-joining (pressing 'play again')
+  function joinGame(user, lobby, firstGame = true) {
+    // Create a game for this lobby (if there isn't already one).
+    if (getGame(lobby) == undefined) newGame(lobby);
+
+    // Copy player roles and cpus
+    let roles = getRoles(lobby).slice();
+    let cpus = getCpus(lobby).slice();
+
+    // Set random player roles
+    let role = 0;
+    while (roles[role] == 1)  { // find a new role if this one is already taken
+      role = Math.floor(Math.random() * 4) + 1;
+    }
+    setPlayerAssignment(user.id, role);
+    roles[role] = 1;
+
+    // If this is the first user to join this lobby create all 4 players (3 to be filled or controlled by server unless filled)
+    if (getLobbyUsers(lobby).length == 1 || (!firstGame && getLobbyPlayers(lobby).length ==  0)) {
+      // Link player and user together (example: user.playerAssignment --> player.role)
+      const player = playerJoin(user.name, lobby, getPlayerAssignment(user.id));
+
+      // Fill remaining players with CPU
+      for (let i = 2; i <= 4; i++)  {
+        // Set random player roles (roles[i] = 0 if role is not taken, 1 if it is assigned to a user, and 2 if it is only assigned to a player, but not yet a user)
+        let role = 0;
+        while (roles[role] == 1 || roles[role] == 2)  { // find a new role if this one is already taken
+          role = Math.floor(Math.random() * 4) + 1;
+        }
+        roles[role] = 2;
+
+        if (getLobbyPlayers(lobby).length < i)  {
+          let cpu = playerJoin(('CPU ' + role), lobby, role);
+          cpus[role] = 1;
+        }
+      }
+    } // This is not the first player to join the lobby, so we need to assign them a player (replacing/removing CPU of their assigned role)
+    else {
+      setPlayerName(user.name, lobby, role);
+      cpus[role] = 0;
+
+      // Emit votes
+      if (getVotes(lobby) > 0 && getGame(lobby).timer == null)
+      socket.emit('voteCount', {count: getVotes(lobby), total: getLobbyUsers(lobby).length});
+    }
+
+    // update game-saved roles and cpus
+    setRoles(lobby, roles);
+    setCpus(lobby, cpus);
+
+    // Send users and lobby info
+    io.to(user.lobby).emit('initDisplayLobbyInfo', {
+      lobby: user.lobby,
+      players: getLobbyPlayers(user.lobby)
+    });
+
+    // If the game is in progress, let the client know
+    if (getGame(lobby).timer != null && !getGameOver(lobby)) {
+      socket.emit('gameStarted');
+    }
+
+    // Create a gameboard and set players spawn points if not already done.
+    if (getGameBoard(lobby) == null) {
+      let gameBoard = createGameBoard(lobby); // Create gameboard
+      let players = getLobbyPlayers(lobby);
+
+      // Set player spawn points
+      players.forEach(player => {
+        if (player.role != 4) { // If player is a ghost spawn in ghostlair
+          respawn(gameBoard, player, lobby, false);
+          setPrevIndex(lobby, player.role, getIndex(player.lobby, player.role));
+          gameBoard[getIndex(lobby, player.role)] = player.role + 2;
+          setPrevPosType(lobby, player.role, 8);
+        }
+        else { // IF player is pacman spawn accordingly
+          var pacmanStart = Math.floor(Math.random() * (292 - 288)) + 288;
+          setIndex(lobby, player.role, pacmanStart);
+          setPrevIndex(lobby, player.role, pacmanStart);
+          gameBoard[getIndex(lobby, player.role)] = 7;
+          setPrevPosType(lobby, player.role, 0);
+        }
+      });
+
+      // Save the new gameBoard with players to the gameData
+      setGameBoard(lobby, gameBoard);
+    }
+
+    // Emit the gameboard
+    socket.emit('loadBoard', {
+      players: getLobbyPlayers(lobby),
+      gameBoard: getGameBoard(lobby)
+    });
+  }
+
   // A user has voted that the game should start
   socket.on('voteStartGame', () =>  {
     let user = getCurrentUser(socket.id);
     tallyVote(user.lobby); // Tally the user's vote to start the game
 
-    // Start the game if there are n/n votes to start the game
-    if (getVotes(user.lobby) == getLobbyUsers(user.lobby).length)  {
-      beginGame(getLobbyPlayers(user.lobby), user.lobby);
-    }
+    // emit the updated results and display message saying who voted
     io.to(user.lobby).emit('voteCount', {count: getVotes(user.lobby), total: getLobbyUsers(user.lobby).length});
+    io.to(user.lobby).emit('message', user.name + ' voted to begin a game');
+
+    // Start the game if there are n/n votes to start the game
+    if (getVotes(user.lobby) == getLobbyUsers(user.lobby).length)
+      beginGame(getLobbyPlayers(user.lobby), user.lobby);
   });
 
   // Choose a random level (1 or 2) and store a copy of that level as gameBoard
@@ -361,7 +372,14 @@ io.on('connection', socket => {
       });
 
       clearInterval(gameUpdateTimer);
-      clearGame(); // Clear and erase game data. Scores have already been sent to users
+
+      clearGame(lobby); // Clear and erase game data. Scores have already been sent to users
+
+      // Clear all player data
+      players.forEach((player) => {
+        playerLeave(lobby, player.role);
+      });
+
     }
     else {
       clearInterval(gameUpdateTimer);
@@ -390,12 +408,16 @@ io.on('connection', socket => {
         if (gameBoard[index] == 6) { // pacman consumed pill
           if (getStatus(lobby) == 0) {
             switchStatus(lobby);
-            statusTimer = setTimeout(function() {switchStatus(lobby);}, 10000);
+            statusTimer = setTimeout(function() {
+              if (getGame(lobby) != undefined) switchStatus(lobby); // Only switch status if the game is not over (game could end by the time this is run).
+            }, 10000);
             setStatusTimer(lobby, statusTimer);
           }
           else { // Pacman recently consumed pill. Reset the 10 second countdown
             clearTimeout(statusTimer);
-            statusTimer = setTimeout(function() {switchStatus(lobby);}, 10000);
+            statusTimer = setTimeout(function() {
+              if (getGame(lobby) != undefined) switchStatus(lobby); // Only switch status if the game is not over (game could end by the time this is run).
+            }, 10000);
             setStatusTimer(lobby, statusTimer);
           }
         }
@@ -524,12 +546,16 @@ io.on('connection', socket => {
   // Handle player direction changes (keypresses)
   socket.on('changeDirection', (direction) => {
     const lobby = getCurrentUser(socket.id).lobby;
-    const role = getCurrentUser(socket.id).player;
 
-    if (direction === 'up') setQueue(lobby, role, -20);
-    else if (direction === 'right') setQueue(lobby, role, 1);
-    else if (direction === 'down') setQueue(lobby, role, 20);
-    else if (direction === 'left') setQueue(lobby, role, -1);
+    // Directions can only be changed if a game is in progress.
+    if (getGame(lobby) != null || getGame(lobby) != undefined)  {
+      const role = getCurrentUser(socket.id).player;
+
+      if (direction === 'up') setQueue(lobby, role, -20);
+      else if (direction === 'right') setQueue(lobby, role, 1);
+      else if (direction === 'down') setQueue(lobby, role, 20);
+      else if (direction === 'left') setQueue(lobby, role, -1);
+    }
   });
 
   // Lobby chat
@@ -553,41 +579,67 @@ io.on('connection', socket => {
       players: getLobbyPlayers(user.lobby),
       gameTime: endGame(user.lobby)
     });
+
+    clearGame(user.lobby);
+
+    // Clear all player data
+    getLobbyPlayers(user.lobby).forEach((player) => {
+      playerLeave(user.lobby, player.role);
+    });
   });
 
   // Runs when client disconnects
   socket.on('disconnect', () => {
     if (getCurrentUser(socket.id) != undefined) {
       const user = getCurrentUser(socket.id);
-      let roles = getRoles(user.lobby).slice();
-      let cpus = getCpus(user.lobby).slice();
 
-      // Set a CPU to this player and remember that this player is now a CPU. Then save all of this to the game data.
-      roles[user.player] = 2;
-      cpus[user.player] = 1;
-      setPlayerName(('CPU ' + user.player), user.lobby, user.player);
-      setRoles(user.lobby, roles);
-      setCpus(user.lobby, cpus);
+      // Let lobby know that user has left
+      console.log('Lobby: ' + user.lobby + '  | ' + user.name + ' has left');
+      io.to(user.lobby).emit('message', user.name + ' left the lobby');
 
-      const userLeft = userLeave(socket.id);
-      if (getLobbyUsers(user.lobby).length < 1)  {
-        for (let i = 1; i <= 4; i++)  {
-          playerLeave(user.lobby, i);
+      // Handle Lobby if there is a game in progress (assign cpus, etc.)
+      if (getGame(user.lobby) != undefined) {
+        let roles = getRoles(user.lobby).slice();
+        let cpus = getCpus(user.lobby).slice();
+
+        // Set a CPU to this player and remember that this player is now a CPU. Then save all of this to the game data.
+        roles[user.player] = 2;
+        cpus[user.player] = 1;
+        setPlayerName(('CPU ' + user.player), user.lobby, user.player);
+        setRoles(user.lobby, roles);
+        setCpus(user.lobby, cpus);
+
+        const userLeft = userLeave(socket.id);
+        if (getLobbyUsers(user.lobby).length < 1)  {
+          for (let i = 1; i <= 4; i++)  {
+            playerLeave(user.lobby, i);
+          }
+          clearInterval(getGameUpdateTimer(user.lobby)); // Stop constant server-client communication
+          clearGame(user.lobby); // Clear the game data
         }
-        clearInterval(getGameUpdateTimer(user.lobby)); // Stop constant server-client communication
-        clearGame(user.lobby); // Clear the game data
-      }
-      else if (userLeft) {
-        console.log(user.name + ' left the lobby\n');
-        io.to(user.lobby).emit('message', user.name + ' left the lobby');
+        else if (userLeft) {
 
-        // Send users and lobby info
-        io.to(user.lobby).emit('lobbyPlayers', {
-          lobby: user.lobby,
-          players: getLobbyPlayers(user.lobby)
-        });
+          // Send users and lobby info
+          io.to(user.lobby).emit('lobbyPlayers', {
+            lobby: user.lobby,
+            players: getLobbyPlayers(user.lobby)
+          });
+
+          // Send remaining players updated vote count
+          io.to(user.lobby).emit('voteCount', {count: getVotes(user.lobby), total: getLobbyUsers(user.lobby).length});
+
+          // Start the game if the remaining players have all voted to start the game.
+          if (getVotes(user.lobby) == getLobbyUsers(user.lobby).length) beginGame(getLobbyPlayers(user.lobby), user.lobby);
+        }
       }
+      // User leaves room. No game updates necessary
+      else {
+        userLeave(socket.id);
+        io.to(user.lobby).emit('voteCount', {count: 0, total: getLobbyUsers(user.lobby).length});
     }
+
+    }
+
     // Update the active lobbies list (on index page)
     io.emit('lobbyList', (io.sockets.adapter.rooms));
   });// Do not put anything below socket.on(disconnect)
