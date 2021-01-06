@@ -300,6 +300,12 @@ io.on('connection', socket => {
       setQueue(lobby, role, (signum*1));
 
     else setQueue(lobby, role, randomDirection); // target is not in the same row or column, it is somewhere above. move randomly
+
+    // todo: change this function to use pathfinding
+    // working:
+
+    // Call pathfinding method to determine best path towards target
+    console.log(Constants.pathFinding(gameBoard, cpu.index, target));
   }
 
   // todo: Development purposes only. DELETE THIS
