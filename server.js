@@ -258,79 +258,62 @@ io.on('connection', socket => {
 
   // Control CPU behavior
   function controlCPU(gameBoard, lobby, players, status, role) {
-    // First, create a 2d array from the gameBoard that will be easier to compare x & y values. Take note of where all the players are
-    /*var grid = [[],[]];
-    let ghost1P, ghost2P, ghost3P, pacmanP;
-    for (let i = 0; i < gameBoard.length; i++)  {
-      for (let j = 0; j < (gameBoard.length / 23); j++)  {
-        grid[i][j] = gameBoard[i];
-        if (gameBoard[i] == 3) ghost1P = {x: i, y: j};
-        else if (gameBoard[i] == 4) ghost2P = {x: i, y: j};
-        else if (gameBoard[i] == 5) ghost3P = {x: i, y: j};
-        else if (gameBoard[i] == 7) pacmanP = {x: i, y: j};
-      }
-    }*/
     let cpu = getPlayer(lobby, role);
-    var target;
+    var target = getIndex(lobby, 4); // Set the target value to pacman for the most common scenario
+    var potentialTargetIndices = null;
 
-    // Chose a random movement
+    // Choose a random direction for worst-case scenario
     let randomX = (Math.floor(Math.random() * 2) == 1)? -1: 1;
     let randomY = (Math.floor(Math.random() * 2) == 1)? -20: 20;
     let randomDirection = (Math.floor(Math.random() * 2) == 1)? randomX: randomY;
 
-    // Determine the target for this CPU
-    if (status == 0)  {
-      if (role != 4) target = getIndex(lobby, 4);// CPU is ghost, set pacman's index as target
-      else { // CPU is pacman, set target to dot/pill. Find a dot and move towards it. Start searching at current position and check following indices.
+    // Determine the target (index) for this CPU
+    if (status == 0 && role == 4)  { // CPU is pacman, set target to dot/pill. Find a dot and move towards it. Start searching at current position and check following indices.
+      potentialTargetIndices = findEdibleIndices(gameBoard);
+    }
+    else { // Game status is not 0, meaning PacMan kills ghosts on collision
+      if (role == 4)  { // CPU is pacman. set closest ghost to target
+        potentialTargetIndices = [getIndex(lobby, 1), getIndex(lobby, 2), getIndex(lobby, 3)];
+      }
+      else { // CPU is ghost. Set target to ghost lair.
         for (var i = cpu.index; i < cpu.index - 1; i++) {
-          if (i == gameBoard.length)  i = 0; // Search reached the end of the gameboard array. Search beginning of array.
-          if (gameBoard[i] == 2 || gameBoard[i] == 6) {
+          if (i == gameBoard.length) i = 0; // Search reached the end of gameboard array. Search beginning of array.
+          if (gameBoard[i] == 8)  {
             target = i;
             break;
           }
         }
       }
     }
-    else { // Game status is not 0, meaning PacMan kills ghosts on collision
-      if (role != 4)  { // CPU is ghost
-        // todo. set target to ghost lair
-      }
-      else { // CPU is pacman
-        let playerIndices = [getIndex(lobby, 1), getIndex(lobby, 2), getIndex(lobby, 3)];
-        // Reduce method below from:  https://stackoverflow.com/a/19277804/10475867
-        target = playerIndices.reduce(function(prev, curr) {
-          return (Math.abs(curr - cpu.index) < Math.abs(prev - cpu.index)? curr : prev);
-        });
-      }
+
+    // If potential target indices has a value set, reduce it and find the target index closest to the cpu
+    if (potentialTargetIndices != null) {
+      // Reduce method below from:  https://stackoverflow.com/a/19277804/10475867
+      target = potentialTargetIndices.reduce(function(prev, curr) {
+        return (Math.abs(curr - cpu.index) < Math.abs(prev - cpu.index)? curr : prev);
+      });
     }
 
-      // Use the previously determined target to set a queue/direction for the CPU
-      if (cpu.index > target) { // target is at smaller indice (left or above)
-        if (role == 4)  console.log((cpu.index % 20) + ' ' + (target % 20));
-        if (cpu.index % 20 == target % 20)  { // target is above
-          if (role == 4)  console.log('CPU: ' + cpu.name + ' target directly above!');
-          setQueue(lobby, role, -20);
-        }
-        else if (Math.floor(cpu.index / 20) == Math.floor(target / 20)) { // target is to the left
-          if (role == 4)  console.log('CPU: ' + cpu.name + ' target directly left!');
-          setQueue(lobby, role, -1);
-        }
-        else { // target is not in the same row or column, it is somewhere above. move randomly
-          setQueue(lobby, role, randomDirection);
-        }
-      }
-      else { // target is at larger indice (right or below)
-        if (cpu.index % 20 == target % 20)  { // target is below
-          if (role == 4)  console.log('CPU: ' + cpu.name + ' target directly below!');
-          setQueue(lobby, role, 20);
-        }
-        else if (Math.floor(cpu.index / 20) == Math.floor(target / 20)) { // target is to the right
-          if (role == 4)  console.log(cpu.name + ' target directly right!');
-          setQueue(lobby, role, 1);
-        }
-        else {
-          setQueue(lobby, role,randomDirection);
-        }
+    var signum = 1; // Represent positivity or negativity of direction. Only needs to be changed if target is at smaller index than CPU
+    if (cpu.index > target) signum = -1; // Target is at smaller index. Change to negative direction
+
+    // Use the previously determined target to set a queue/direction for the CPU
+    if (cpu.index % 20 == target % 20) // Target is in the same column
+      setQueue(lobby, role, (signum*20));
+
+    else if (Math.floor(cpu.index / 20) == Math.floor(target / 20)) // Target is in the same row
+      setQueue(lobby, role, (signum*1));
+
+    else setQueue(lobby, role, randomDirection); // target is not in the same row or column, it is somewhere above. move randomly
+
+    // Check to see if there is a wall in between the CPU and their target. if so, have them move randomly along the other axis
+    if (gameBoard[cpu.index + getQueue(lobby, role)] == 1) {
+      if (Math.abs(getQueue(lobby, role)) == 1)
+        randomDirection = (Math.floor(Math.random() * 2) == 1)? -20: 20;
+
+      else randomDirection = (Math.floor(Math.random() * 2) == 1)? -1: 1;
+
+      setQueue(lobby, role, randomDirection);
     }
   }
 
@@ -346,8 +329,8 @@ io.on('connection', socket => {
 
     // Control CPU behavior if there are any CPUs.
     for (var i = 1; i < cpus.length && (getStatus(lobby) != -1); i++) {
-      let cpuChance = Math.floor(Math.random() * 2);
-      if (cpus[i] == 1 && cpuChance == 1) controlCPU(gameBoard, lobby, players, getStatus(lobby), i);
+      let cpuChance = Math.floor(Math.random() * 3);
+      if (cpus[i] == 1 && cpuChance != 0) controlCPU(gameBoard, lobby, players, getStatus(lobby), i);
     }
 
     // Iterate through players and determine their new position based on their direction
@@ -479,6 +462,14 @@ io.on('connection', socket => {
   function removeWalls(gameBoard) {
     return gameBoard != 1;
   }
+
+  // Filter gameBoard and return a list(array) of the indices of only dots/pills
+  function findEdibleIndices(gameBoard)  {
+    let indices = [];
+    indices.push(gameBoard.findIndex(square => square == 2 || square == 6));
+    return indices;
+  }
+
 
   // Handle player movement over a pill or dot. Returns false if a unresponsive collision occured (i.e. two ghosts run into each other)
   function checkCollisions(gameBoard, index, player, lobby) {
@@ -631,16 +622,18 @@ io.on('connection', socket => {
 
   // Handle player direction changes (keypresses)
   socket.on('changeDirection', (direction) => {
-    const lobby = getCurrentUser(socket.id).lobby;
+    if (getCurrentUser(socket.id) != undefined) {
+      const lobby = getCurrentUser(socket.id).lobby;
 
-    // Directions can only be changed if a game is in progress.
-    if (getGame(lobby) != null || getGame(lobby) != undefined)  {
-      const role = getCurrentUser(socket.id).player;
+      // Directions can only be changed if a game is in progress.
+      if (getGame(lobby) != null || getGame(lobby) != undefined)  {
+        const role = getCurrentUser(socket.id).player;
 
-      if (direction === 'up') setQueue(lobby, role, -20);
-      else if (direction === 'right') setQueue(lobby, role, 1);
-      else if (direction === 'down') setQueue(lobby, role, 20);
-      else if (direction === 'left') setQueue(lobby, role, -1);
+        if (direction === 'up') setQueue(lobby, role, -20);
+        else if (direction === 'right') setQueue(lobby, role, 1);
+        else if (direction === 'down') setQueue(lobby, role, 20);
+        else if (direction === 'left') setQueue(lobby, role, -1);
+      }
     }
   });
 
