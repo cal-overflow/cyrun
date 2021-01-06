@@ -71,7 +71,6 @@ socket.on('failedEntrance', (reason) =>  {
 // Handle the vote feedback from server
 socket.on('voteCount', ({count, total}) =>  {
     beginGameBtn.innerText = (total == 1)? ('Ready: ' + count + '/' + total): 'Begin Game';
-    if (voted) console.log('player already voted');
     beginGameBtn.style.backgroundColor = (voted)? '#343a40': "#0069d9"; // Set background color to dark grey if they already voted
   if (count == total) {
     setTimeout(function() {beginGameBtn.style.display = 'none';}, 1500);

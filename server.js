@@ -268,21 +268,16 @@ io.on('connection', socket => {
     let randomDirection = (Math.floor(Math.random() * 2) == 1)? randomX: randomY;
 
     // Determine the target (index) for this CPU
-    if (status == 0 && role == 4)  { // CPU is pacman, set target to dot/pill. Find a dot and move towards it. Start searching at current position and check following indices.
-      potentialTargetIndices = findEdibleIndices(gameBoard);
+    if (status == 0)  { // CPU is pacman, set target to dot/pill. Find a dot and move towards it. Start searching at current position and check following indices.
+      if (role == 4) potentialTargetIndices = findEdibleIndices(gameBoard);
     }
     else { // Game status is not 0, meaning PacMan kills ghosts on collision
-      if (role == 4)  { // CPU is pacman. set closest ghost to target
+      if (role == 4)  { // CPU is pacman. Get a list of the ghosts indices to later determine the closest.
         potentialTargetIndices = [getIndex(lobby, 1), getIndex(lobby, 2), getIndex(lobby, 3)];
       }
       else { // CPU is ghost. Set target to ghost lair.
-        for (var i = cpu.index; i < cpu.index - 1; i++) {
-          if (i == gameBoard.length) i = 0; // Search reached the end of gameboard array. Search beginning of array.
-          if (gameBoard[i] == 8)  {
-            target = i;
-            break;
-          }
-        }
+        if (getPrevPosType(lobby, role) == 8) return; // if the ghost is already in a ghost lair spot, leave them be
+        potentialTargetIndices = findGhostLairIndices(gameBoard);
       }
     }
 
@@ -298,23 +293,13 @@ io.on('connection', socket => {
     if (cpu.index > target) signum = -1; // Target is at smaller index. Change to negative direction
 
     // Use the previously determined target to set a queue/direction for the CPU
-    if (cpu.index % 20 == target % 20) // Target is in the same column
+    if (cpu.index % 20 == target % 20 || gameBoard[cpu.index + (signum*1)] == 1) // Target is in the same column or it is in the row, but there's a wall in the way.
       setQueue(lobby, role, (signum*20));
 
-    else if (Math.floor(cpu.index / 20) == Math.floor(target / 20)) // Target is in the same row
+    else if (Math.floor(cpu.index / 20) == Math.floor(target / 20) || gameBoard[cpu.index + (signum*1)] == 1) // Target is in the same row or it's in the same column, but there's a wall in the way.
       setQueue(lobby, role, (signum*1));
 
     else setQueue(lobby, role, randomDirection); // target is not in the same row or column, it is somewhere above. move randomly
-
-    // Check to see if there is a wall in between the CPU and their target. if so, have them move randomly along the other axis
-    if (gameBoard[cpu.index + getQueue(lobby, role)] == 1) {
-      if (Math.abs(getQueue(lobby, role)) == 1)
-        randomDirection = (Math.floor(Math.random() * 2) == 1)? -20: 20;
-
-      else randomDirection = (Math.floor(Math.random() * 2) == 1)? -1: 1;
-
-      setQueue(lobby, role, randomDirection);
-    }
   }
 
   // todo: Development purposes only. DELETE THIS
@@ -463,13 +448,19 @@ io.on('connection', socket => {
     return gameBoard != 1;
   }
 
-  // Filter gameBoard and return a list(array) of the indices of only dots/pills
+  // Filter gameBoard and return a list (array) of the indices of only dots/pills
   function findEdibleIndices(gameBoard)  {
     let indices = [];
     indices.push(gameBoard.findIndex(square => square == 2 || square == 6));
     return indices;
   }
 
+  // Filter gameBoard and return a list (array) of the indices of only ghost lair squares
+  function findGhostLairIndices(gameBoard)  {
+    let indices = [];
+    indices.push(gameBoard.findIndex(square => square == 8));
+    return indices;
+  }
 
   // Handle player movement over a pill or dot. Returns false if a unresponsive collision occured (i.e. two ghosts run into each other)
   function checkCollisions(gameBoard, index, player, lobby) {
