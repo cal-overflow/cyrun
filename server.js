@@ -686,6 +686,7 @@ io.on('connection', socket => {
           }
           clearInterval(getGameUpdateTimer(user.lobby)); // Stop constant server-client communication
           clearGame(user.lobby); // Clear the game data
+          console.log('[Update]: Game ending in lobby ' + lobby);
         }
         else if (userLeft) {
 
