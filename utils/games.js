@@ -39,6 +39,8 @@ function clearGame(lobby) {
 // Start a game (begin recording time)
 function startGame(lobby) {
   getGame(lobby).timer = new Date();
+  getGame(lobby).status = -1; // Set the status to -1 for the first five seconds so the CPU players don't move before the game starts
+  setTimeout(function() {getGame(lobby).status = 0;}, 5000); // Set teh status back to 0.
 }
 
 // End a game. Stop and return the game timer

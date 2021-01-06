@@ -99,9 +99,9 @@ io.on('connection', socket => {
       socket.join(user.lobby);
       const users = getLobbyUsers(user.lobby);
 
-      console.log('Lobby: ' + user.lobby + '  | ' + user.name + ' has joined');
-      socket.emit('message', 'Welcome to CyRun lobby ' + user.lobby); // Welcome current user to lobby.
-      socket.broadcast.to(user.lobby).emit('message', user.name + ' joined the lobby'); // Broadcast that a user connected
+      console.log('[Update]: User joined lobby ' + lobby + ' (user: ' + username + ')');
+      socket.emit('message', 'Welcome to CyRun lobby ' + user.lobby + '.'); // Welcome current user to lobby.
+      socket.broadcast.to(user.lobby).emit('message', user.name + ' joined the lobby.'); // Broadcast that a user connected
 
       joinGame(user, lobby);
 
@@ -221,7 +221,8 @@ io.on('connection', socket => {
 
     // emit the updated results and display message saying who voted
     io.to(user.lobby).emit('voteCount', {count: getVotes(user.lobby), total: getLobbyUsers(user.lobby).length});
-    io.to(user.lobby).emit('message', user.name + ' voted to begin a game');
+    if (getLobbyUsers(user.lobby).length != 1)
+      io.to(user.lobby).emit('message', user.name + ' is ready to play.');
 
     // Start the game if there are n/n votes to start the game
     if (getVotes(user.lobby) == getLobbyUsers(user.lobby).length)
@@ -241,13 +242,13 @@ io.on('connection', socket => {
         break;
     }
 
-    socket.emit('message', 'Map ' + choice + ' selected');
+    socket.emit('message', 'Map ' + choice + ' selected.');
     return getGameBoard(lobby);
   }
 
   // Set starting positions of each player and begin the game
   function beginGame(players, lobby)  {
-    console.log('Lobby: ' + lobby + ' | A game has started');
+    console.log('[Update]: Game starting in lobby ' + lobby);
 
     startGame(lobby);
 
@@ -255,16 +256,100 @@ io.on('connection', socket => {
     game(lobby, players);
   }
 
-  // // TODO: do something with this.
-  // User acknowledged the game ended and left the lobby
-  /*socket.on('ackGameEnd', (id) => {
-    userLeave(id);
-    socket.disconnect();
-  });*/
+  // Control CPU behavior
+  function controlCPU(gameBoard, lobby, players, status, role) {
+    // First, create a 2d array from the gameBoard that will be easier to compare x & y values. Take note of where all the players are
+    /*var grid = [[],[]];
+    let ghost1P, ghost2P, ghost3P, pacmanP;
+    for (let i = 0; i < gameBoard.length; i++)  {
+      for (let j = 0; j < (gameBoard.length / 23); j++)  {
+        grid[i][j] = gameBoard[i];
+        if (gameBoard[i] == 3) ghost1P = {x: i, y: j};
+        else if (gameBoard[i] == 4) ghost2P = {x: i, y: j};
+        else if (gameBoard[i] == 5) ghost3P = {x: i, y: j};
+        else if (gameBoard[i] == 7) pacmanP = {x: i, y: j};
+      }
+    }*/
+    let cpu = getPlayer(lobby, role);
+    var target;
+
+    // Chose a random movement
+    let randomX = (Math.floor(Math.random() * 2) == 1)? -1: 1;
+    let randomY = (Math.floor(Math.random() * 2) == 1)? -20: 20;
+    let randomDirection = (Math.floor(Math.random() * 2) == 1)? randomX: randomY;
+
+    // Determine the target for this CPU
+    if (status == 0)  {
+      if (role != 4) target = getIndex(lobby, 4);// CPU is ghost, set pacman's index as target
+      else { // CPU is pacman, set target to dot/pill. Find a dot and move towards it. Start searching at current position and check following indices.
+        for (var i = cpu.index; i < cpu.index - 1; i++) {
+          if (i == gameBoard.length)  i = 0; // Search reached the end of the gameboard array. Search beginning of array.
+          if (gameBoard[i] == 2 || gameBoard[i] == 6) {
+            target = i;
+            break;
+          }
+        }
+      }
+    }
+    else { // Game status is not 0, meaning PacMan kills ghosts on collision
+      if (role != 4)  { // CPU is ghost
+        // todo. set target to ghost lair
+      }
+      else { // CPU is pacman
+        let playerIndices = [getIndex(lobby, 1), getIndex(lobby, 2), getIndex(lobby, 3)];
+        // Reduce method below from:  https://stackoverflow.com/a/19277804/10475867
+        target = playerIndices.reduce(function(prev, curr) {
+          return (Math.abs(curr - cpu.index) < Math.abs(prev - cpu.index)? curr : prev);
+        });
+      }
+    }
+
+      // Use the previously determined target to set a queue/direction for the CPU
+      if (cpu.index > target) { // target is at smaller indice (left or above)
+        if (role == 4)  console.log((cpu.index % 20) + ' ' + (target % 20));
+        if (cpu.index % 20 == target % 20)  { // target is above
+          if (role == 4)  console.log('CPU: ' + cpu.name + ' target directly above!');
+          setQueue(lobby, role, -20);
+        }
+        else if (Math.floor(cpu.index / 20) == Math.floor(target / 20)) { // target is to the left
+          if (role == 4)  console.log('CPU: ' + cpu.name + ' target directly left!');
+          setQueue(lobby, role, -1);
+        }
+        else { // target is not in the same row or column, it is somewhere above. move randomly
+          setQueue(lobby, role, randomDirection);
+        }
+      }
+      else { // target is at larger indice (right or below)
+        if (cpu.index % 20 == target % 20)  { // target is below
+          if (role == 4)  console.log('CPU: ' + cpu.name + ' target directly below!');
+          setQueue(lobby, role, 20);
+        }
+        else if (Math.floor(cpu.index / 20) == Math.floor(target / 20)) { // target is to the right
+          if (role == 4)  console.log(cpu.name + ' target directly right!');
+          setQueue(lobby, role, 1);
+        }
+        else {
+          setQueue(lobby, role,randomDirection);
+        }
+    }
+  }
+
+  // todo: Development purposes only. DELETE THIS
+  socket.on('statusChange', () => {
+    switchStatus(getCurrentUser(socket.id).lobby);
+  });
 
   // Constant updates between clients and server (real-time game)
   function game(lobby, players) {
     let gameBoard = getGameBoard(lobby);
+    let cpus = getCpus(lobby);
+
+    // Control CPU behavior if there are any CPUs.
+    for (var i = 1; i < cpus.length && (getStatus(lobby) != -1); i++) {
+      let cpuChance = Math.floor(Math.random() * 2);
+      if (cpus[i] == 1 && cpuChance == 1) controlCPU(gameBoard, lobby, players, getStatus(lobby), i);
+    }
+
     // Iterate through players and determine their new position based on their direction
     players.forEach(player => {
       var update = false;
@@ -364,7 +449,9 @@ io.on('connection', socket => {
 
     let gameUpdateTimer = getGameUpdateTimer(lobby);
 
-    if (checkGameStatus(lobby))  { // Check if game is over and respond accordingly
+    // Check if game is over and respond accordingly
+    if (checkGameStatus(lobby))  {
+      console.log('[Update]: Game ending in lobby ' + lobby);
       io.to(lobby).emit('gameOver', {
         lobby: lobby,
         players: getLobbyPlayers(lobby),
@@ -379,13 +466,12 @@ io.on('connection', socket => {
       players.forEach((player) => {
         playerLeave(lobby, player.role);
       });
-
     }
+    // The game is not yet over, so continue the constant feedback (game function).
     else {
       clearInterval(gameUpdateTimer);
       gameUpdateTimer = setInterval(function() {game(lobby, players);}, tickSpeed);
       setGameUpdateTimer(lobby, gameUpdateTimer); // Loop function
-      //gameUpdateTimer = setInterval(function() {game(lobby, players);}, 220); //Loop function
     }
   }
 
@@ -594,8 +680,8 @@ io.on('connection', socket => {
       const user = getCurrentUser(socket.id);
 
       // Let lobby know that user has left
-      console.log('Lobby: ' + user.lobby + '  | ' + user.name + ' has left');
-      io.to(user.lobby).emit('message', user.name + ' left the lobby');
+      console.log('[Update]: User left lobby ' + user.lobby + ' (user: ' + user.name + ')');
+      io.to(user.lobby).emit('message', user.name + ' left the lobby.');
 
       // Handle Lobby if there is a game in progress (assign cpus, etc.)
       if (getGame(user.lobby) != undefined) {
@@ -636,10 +722,8 @@ io.on('connection', socket => {
       else {
         userLeave(socket.id);
         io.to(user.lobby).emit('voteCount', {count: 0, total: getLobbyUsers(user.lobby).length});
+      }
     }
-
-    }
-
     // Update the active lobbies list (on index page)
     io.emit('lobbyList', (io.sockets.adapter.rooms));
   });// Do not put anything below socket.on(disconnect)

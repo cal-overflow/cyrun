@@ -70,14 +70,9 @@ socket.on('failedEntrance', (reason) =>  {
 
 // Handle the vote feedback from server
 socket.on('voteCount', ({count, total}) =>  {
-  if (voted) {
-    beginGameBtn.innerText = 'Votes: ' + count + '/' + total;
-    beginGameBtn.style.backgroundColor = '#343a40';
-  }
-  else {
-    beginGameBtn.innerText = 'Begin Game';
-    beginGameBtn.style.backgroundColor = '#0069d9';
-  }
+    beginGameBtn.innerText = (total == 1)? ('Ready: ' + count + '/' + total): 'Begin Game';
+    if (voted) console.log('player already voted');
+    beginGameBtn.style.backgroundColor = (voted)? '#343a40': "#0069d9"; // Set background color to dark grey if they already voted
   if (count == total) {
     setTimeout(function() {beginGameBtn.style.display = 'none';}, 1500);
   }
@@ -86,10 +81,11 @@ socket.on('voteCount', ({count, total}) =>  {
 // Initial lobby and User/player info display
 socket.on('initDisplayLobbyInfo', ({lobby, players}) => {
   countdown.style.visibility = "visible"; // Ensure countdown is visible (it is set to hidden after each game)
-  footerMsg.innerHTML = "Vote to Begin the game. The game will start automatically when four players have joined the lobby.<br />";
+  footerMsg.innerHTML = "Vote to Begin the game. The game will automatically start when four players have joined the lobby.<br />";
 
   outputLobbyName(lobby);
   outputPlayers(players);
+  document.title = "CyRun - Lobby " + lobby;
 });
 
 // Handle lobby player information
@@ -242,7 +238,6 @@ socket.on('gameOver', ({lobby, players, gameTime}) => {
   //socket.emit('ackGameEnd', {id : socket.id}); // todo: handle gameOver process
   finalScoreboard.innerHTML = ""; // Clear scorebaord
   playerEnabled = -1; // Player movement disabled
-  voted = false; // reset voting
   let ghostTotal = 0;
   let pacmanScore = 0;
   players.forEach((player) => {
@@ -344,12 +339,12 @@ beginGameBtn.addEventListener('click', (e) => {
   }
 });
 
-// Replaces the scoreboard with the player list and brings back the 'begin game' button
+// Replaces the scoreboard with the player list
 playAgain.onclick = function() {
   gameOver.style.display = "none";
-  beginGameBtn.style.display = userSection.style.display = "block";
+  userSection.style.display = "block";
   socket.emit('reJoinGame');
-  beginGameBtn.innerText = 'Begin Game';
+  socket.emit('voteStartGame');
     clearTimeout(timer);
     clearInterval(interval);
 };
@@ -367,8 +362,14 @@ document.addEventListener('keydown', function(event)	{
 	}
 }, true);
 
+// Develoment purposes only. Delete this. todo
+function statusChange()  {
+  socket.emit('statusChange');
+}
+
 // The server is telling the clients that a game is starting
 socket.on('startingGame', () => {
+  beginGameBtn.style.display = 'none';
   playerEnabled = -1; // Reset player enabled in the event of a game reset
   let second = 5; // Start 5 second countdown to start game
   interval = setInterval(function() {
