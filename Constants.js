@@ -84,106 +84,95 @@ module.exports.LEVEL2 = LEVEL2;
 
 var testing = false; // todo: delete this! Develoment purposes only.
 
-const nodes = [];
-
-// Path finding algorithm (A*)
 const pathFinding = function(gameBoard, start, goal)  {
-  // Current attempt to create adjacency-matrix-representation of gameboard where (a, b) is the weight of the edge or 0 if there is no edge (wall to other cell)
-  var adjMatrix = [];
-  for (let i = 0, k = 0; i < 23; i++)  {
-    adjMatrix[i] = []; // Row inside of array
-    for (let j = 0; j < 20; j++, k++)  {
-      adjMatrix[i][j] = (gameBoard[k] == 1 || gameBoard[k] == 9)? 0: 1;
-    }
-    //if (!testing) { console.log(adjMatrix[i]); } // todo: delete
-  }
+  // First, create an adjacency matrix representing the paths of the gameBoard
+  let matrix = [];
 
-  var distances = []; // Distances from start cell to all other cells
-  var priorities = []; // Priority list to check while searching paths
-  var visited = []; // List of visited cell indices
-
-  for (var i = 0; i < gameBoard.length; i++) {
-    distances[i] = Number.MAX_VALUE; // Initialize distances with max possible value
-    priorities[i] = Number.MAX_VALUE; // Initialize priorities with max possible value
-  }
-
-  distances[start] = 0; // Set starting has distance of 0 to itself
-  priorities[start] = Math.abs(start - goal); // our ideal path length is the straight line to the goal (this is the i)
-
-  // Search paths
-  while (true)  {
-    var lowestPriority = Number.MAX_VALUE;
-    var lowestPriorityIndex = -1;
-    for (var i = 0; i < priorities.length; i++) {
-      if (priorities[i] < lowestPriority && !visited[i])  {
-        lowestPriority = priorities[i];
-        lowestPriorityIndex = i;
+  for (let i = 0; i < gameBoard.length; i++)  {
+    matrix[i] = [];
+    for (let j = 0; j < gameBoard.length; j++)  {
+      if (gameBoard[i] == 1 || gameBoard[j] == 1) {
+        matrix[i][j] = 0; // Wall is not traversal
+      }
+      else if (Math.abs(i - j) == 20)  {
+        matrix[i][j] = 1; // Indices are direclty vertical of each other
+      }
+      else if (Math.abs(i - j) == 1)  {
+        matrix[i][j] = 1; // Indices are directly horizontal of each other
+      }
+      else if (i == j)  {
+        matrix[i][j] = 1; // Indices are the same
       }
     }
-
-    if (lowestPriorityIndex == -1)  {
-      // No more un-visited nodes (path not found).
-      /*return -1;*/ // todo
-      console.log('path not found :('); //todo delete
-      return visited;
-    }
-    else if (lowestPriorityIndex == goal) {
-      /*return distances[lowestPriorityIndex];*/ // todo
-      return visited;
-    }
-
-    // Set neighbors based on possible location.
-    let neighbors = [0, 0, 0, 0]; // [above, left, right, below]. 0 represents unaccessible path, 1 represents accessible.
-    switch (true)  {
-      case (lowestPriorityIndex < 20): // Can't have neigbor above.
-        neighbors = [0, adjMatrix[lowestPriorityIndex - 1], adjMatrix[lowestPriorityIndex + 1], adjMatrix[lowestPriorityIndex + 20]];
-        break;
-      case (lowestPriorityIndex % 19 == 0): // Can't have neighbor to the right.
-        neighbors = [adjMatrix[lowestPriorityIndex - 20], adjMatrix[lowestPriorityIndex - 1], 0, adjMatrix[lowestPriorityIndex + 20]];
-        break;
-      case (lowestPriorityIndex % 20 == 0): // Can't have neighbor to the left.
-        neighbors = [adjMatrix[lowestPriorityIndex - 20], 0, adjMatrix[lowestPriorityIndex + 1], adjMatrix[lowestPriorityIndex + 20]];
-        break;
-      case (lowestPriorityIndex > 440): // Can't have neighbor below.
-        neighbors = [adjMatrix[lowestPriorityIndex - 20], adjMatrix[lowestPriorityIndex - 1], adjMatrix[lowestPriorityIndex + 1], 0];
-        break;
-      case ((i > 20) && (i % 19 != 0) && (i % 20 != 0) && (i < 440)): // Node can have all surrounding neighbors
-        neighbors = [adjMatrix[lowestPriorityIndex - 20], adjMatrix[lowestPriorityIndex - 1], adjMatrix[lowestPriorityIndex + 1], adjMatrix[lowestPriorityIndex + 20]];
-        break;
-    }
-    console.log("Visiting node " + lowestPriorityIndex + " with currently lowest priority of " + lowestPriority);
-      // Check all neighboring cells that haven't been visited yet. (4 possible neighbors)
-      for (var i = 0; i < 4; i++) {
-        var potentialIndex;
-      if (neighbors[i] == 1 )  {
-        switch (i)  {
-          case (0): // above neighbor
-            potentialIndex = lowestPriorityIndex - 20;
-            break;
-          case (1): // left neighbor
-            potentialIndex = lowestPriorityIndex - 1;
-            break;
-          case (2): // right neigbor
-            potentialIndex = lowestPriorityIndex + 1;
-            break;
-          case (3): // below neigbor
-            potentialIndex = lowestPriorityIndex + 20;
-            break;
-        }
-        // See if potentialIndex has shorter distance. Only check if it has not already been visited
-        if (!visited[potentialIndex] && distances[lowestPriorityIndex] + adjMatrix[potentialIndex] < distances[i])  {
-          distances[i] = distances[lowestPriorityIndex] + adjMatrix[potentialIndex]; // Save as new shortest path
-          priorities[i] = distances[i] + Math.abs(i - goal);
-        }
-      }
-    }
-
-    // Remember that we visited the current cell
-    visited[lowestPriorityIndex] = true;
   }
-  console.log("Currently lowest distances: " + distances);
-  testing = true; // todo: delete
-  return true;
+
+  //This contains the distances from the start node to all other nodes
+      var distances = [];
+      //Initializing with a distance of "Infinity"
+      for (var i = 0; i < matrix.length; i++) distances[i] = Number.MAX_VALUE;
+      //The distance from the start node to itself is of course 0
+      distances[start] = 0;
+
+      //This contains the priorities with which to visit the nodes, calculated using the heuristic.
+      var priorities = [];
+      //Initializing with a priority of "Infinity"
+      for (var i = 0; i < matrix.length; i++) priorities[i] = Number.MAX_VALUE;
+      //start node has a priority equal to straight line distance to goal. It will be the first to be expanded.
+      priorities[start] = Math.abs(start - goal);
+
+      //This contains whether a node was already visited
+      var visited = [];
+
+      // While there are nodes left to visit...
+      while (true) {
+
+          // ... find the node with the currently lowest priority...
+          var lowestPriority = Number.MAX_VALUE;
+          var lowestPriorityIndex = -1;
+          for (var i = 0; i < priorities.length; i++) {
+              //... by going through all nodes that haven't been visited yet
+              if (priorities[i] < lowestPriority && !visited[i]) {
+                  lowestPriority = priorities[i];
+                  lowestPriorityIndex = i;
+              }
+          }
+
+          if (lowestPriorityIndex === -1) {
+              // There was no node not yet visited --> Node not found
+              return -1;
+          } else if (lowestPriorityIndex === goal) {
+              // Goal node found
+              // console.log("Goal node found!");
+              //return distances[lowestPriorityIndex]; todo
+              for (let i = 0; i < distances.length; i++)  {
+                if (distances[i] == 1)  {
+                  return i;
+                }
+              }
+          }
+
+          // console.log("Visiting node " + lowestPriorityIndex + " with currently lowest priority of " + lowestPriority);
+
+          //...then, for all neighboring nodes that haven't been visited yet....
+          for (var i = 0; i < matrix[lowestPriorityIndex].length; i++) {
+              if (matrix[lowestPriorityIndex][i] !== 0 && !visited[i]) {
+                  //...if the path over this edge is shorter...
+                  if (distances[lowestPriorityIndex] + matrix[lowestPriorityIndex][i] < distances[i]) {
+                      //...save this path as new shortest path
+                      distances[i] = distances[lowestPriorityIndex] + matrix[lowestPriorityIndex][i];
+                      //...and set the priority with which we should continue with this node
+                      priorities[i] = distances[i] + Math.abs(i - goal);
+                      // console.log("Updating distance of node " + i + " to " + distances[i] + " and priority to " + priorities[i]);
+                  }
+              }
+          }
+
+          // Lastly, note that we are finished with this node.
+          visited[lowestPriorityIndex] = true;
+          //console.log("Visited nodes: " + visited);
+          //console.log("Currently lowest distances: " + distances);
+
+      }
 }
 
 module.exports.pathFinding = pathFinding;

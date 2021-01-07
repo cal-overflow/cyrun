@@ -254,6 +254,9 @@ io.on('connection', socket => {
 
     io.to(lobby).emit('startingGame'); // Tell the lobby to begin countdown
     game(lobby, players);
+
+    // todo: delete this.
+    // controlCPU(getGameBoard(lobby), lobby, players, 0, 4);
   }
 
   // Control CPU behavior
@@ -261,11 +264,6 @@ io.on('connection', socket => {
     let cpu = getPlayer(lobby, role);
     var target = getIndex(lobby, 4); // Set the target value to pacman for the most common scenario
     var potentialTargetIndices = null;
-
-    // Choose a random direction for worst-case scenario
-    let randomX = (Math.floor(Math.random() * 2) == 1)? -1: 1;
-    let randomY = (Math.floor(Math.random() * 2) == 1)? -20: 20;
-    let randomDirection = (Math.floor(Math.random() * 2) == 1)? randomX: randomY;
 
     // Determine the target (index) for this CPU
     if (status == 0)  { // CPU is pacman, set target to dot/pill. Find a dot and move towards it. Start searching at current position and check following indices.
@@ -289,6 +287,25 @@ io.on('connection', socket => {
       });
     }
 
+    // Take the prederminted target, and change it to the closest index that is in the path determined by the pathFinding function
+    target = Constants.pathFinding(gameBoard, cpu.index, target);
+    console.log('cpu.index: ' + cpu.index + '\ntarget: ' + target);
+
+    // Set the queue (direction) based on the new target (location)
+    if (target - 20 == cpu.index) setQueue(lobby, role, 20);
+    else if (target - 1 == cpu.index) setQueue(lobby, role, 1);
+    else if (target + 1 == cpu.index) setQueue(lobby, role, -1);
+    else if (target + 20 == cpu.index) setQueue(lobby, role, -20);
+
+    /*
+
+    // Choose a random direction for worst-case scenario
+    let randomX = (Math.floor(Math.random() * 2) == 1)? -1: 1;
+    let randomY = (Math.floor(Math.random() * 2) == 1)? -20: 20;
+    let randomDirection = (Math.floor(Math.random() * 2) == 1)? randomX: randomY;
+
+
+
     var signum = 1; // Represent positivity or negativity of direction. Only needs to be changed if target is at smaller index than CPU
     if (cpu.index > target) signum = -1; // Target is at smaller index. Change to negative direction
 
@@ -298,14 +315,8 @@ io.on('connection', socket => {
 
     else if (Math.floor(cpu.index / 20) == Math.floor(target / 20) || gameBoard[cpu.index + (signum*1)] == 1) // Target is in the same row or it's in the same column, but there's a wall in the way.
       setQueue(lobby, role, (signum*1));
-
-    else setQueue(lobby, role, randomDirection); // target is not in the same row or column, it is somewhere above. move randomly
-
-    // todo: change this function to use pathfinding
-    // working:
-
-    // Call pathfinding method to determine best path towards target
-    console.log(Constants.pathFinding(gameBoard, cpu.index, target));
+*/
+    //else setQueue(lobby, role, randomDirection); // target is not in the same row or column, it is somewhere above. move randomly
   }
 
   // todo: Development purposes only. DELETE THIS
@@ -321,7 +332,7 @@ io.on('connection', socket => {
     // Control CPU behavior if there are any CPUs.
     for (var i = 1; i < cpus.length && (getStatus(lobby) != -1); i++) {
       let cpuChance = Math.floor(Math.random() * 3);
-      if (cpus[i] == 1 && cpuChance != 0) controlCPU(gameBoard, lobby, players, getStatus(lobby), i);
+      if (cpus[i] == 1 && cpuChance == 0) controlCPU(gameBoard, lobby, players, getStatus(lobby), i);
     }
 
     // Iterate through players and determine their new position based on their direction
@@ -692,7 +703,7 @@ io.on('connection', socket => {
           }
           clearInterval(getGameUpdateTimer(user.lobby)); // Stop constant server-client communication
           clearGame(user.lobby); // Clear the game data
-          console.log('[Update]: Game ending in lobby ' + lobby);
+          console.log('[Update]: Game ending in lobby ' + user.lobby);
         }
         else if (userLeft) {
 
