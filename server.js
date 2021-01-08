@@ -284,7 +284,7 @@ io.on('connection', socket => {
       target = potentialTargetIndices.reduce(function(prev, curr) {
         return (Constants.manhattanDistance(curr, cpu.index) < Constants.manhattanDistance(prev, cpu.index))? curr: prev;
       });
-      console.log('goal:' + target);
+      // console.log('goal:' + target); // todo: delete
     }
 
     // Take the prederminted target, and change it to the closest index that is in the path determined by the pathFinding function
@@ -292,30 +292,36 @@ io.on('connection', socket => {
     let path = [];
     path = Constants.pathFinding(gameBoard, cpu.index, target);
     target = path[1]; // todo: delete
-    console.log('path: ' + path);
+    // console.log('path: ' + path); // todo: Delete
+
+    console.log('(' + role + ') goal: ' + target);
 
     // Clear the CPU's queue
     //setQueue(lobby, role, 0);
+
+
+    // Choose a random direction for worst-case scenario
+    let randomX = (Math.floor(Math.random() * 2) == 1)? -1: 1;
+    let randomY = (Math.floor(Math.random() * 2) == 1)? -20: 20;
+    let randomDirection = (Math.floor(Math.random() * 2) == 1)? randomX: randomY;
 
     // Set the queue (direction) based on the new target (location)
     if (target - 20 == cpu.index) setQueue(lobby, role, 20);
     else if (target - 1 == cpu.index) setQueue(lobby, role, 1);
     else if (target + 1 == cpu.index) setQueue(lobby, role, -1);
     else if (target + 20 == cpu.index) setQueue(lobby, role, -20);
+    else setQueue(lobby, role, randomDirection); // target is not in the same row or column, it is somewhere above. move randomly
 
 // show path on  gameboard. Develoment purposes only. // TODO:  delete this:
   for (let i = 0; i < gameBoard.length; i++)  {
     //if (path != undefined && path.includes(i) && i != cpu.index && i != target) {
-    if (path != undefined && path.includes(i) && target == i)  {
+    if (path[i] == i && target == i)  {
       //gameBoard[i] = 10; // set index to 'path' square type (don't indclude cpu index) // todo: delete
     }
   }
 
     /*
-    // Choose a random direction for worst-case scenario
-    let randomX = (Math.floor(Math.random() * 2) == 1)? -1: 1;
-    let randomY = (Math.floor(Math.random() * 2) == 1)? -20: 20;
-    let randomDirection = (Math.floor(Math.random() * 2) == 1)? randomX: randomY;
+
 
     var signum = 1; // Represent positivity or negativity of direction. Only needs to be changed if target is at smaller index than CPU
     if (cpu.index > target) signum = -1; // Target is at smaller index. Change to negative direction
@@ -327,7 +333,7 @@ io.on('connection', socket => {
     else if (Math.floor(cpu.index / 20) == Math.floor(target / 20) || gameBoard[cpu.index + (signum*1)] == 1) // Target is in the same row or it's in the same column, but there's a wall in the way.
       setQueue(lobby, role, (signum*1));
 */
-    //else setQueue(lobby, role, randomDirection); // target is not in the same row or column, it is somewhere above. move randomly
+    //
   }
 
   // todo: Development purposes only. DELETE THIS

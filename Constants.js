@@ -86,7 +86,7 @@ module.exports.LEVEL2 = LEVEL2;
 
 var testing = false; // todo: delete this! Develoment purposes only.
 
-const pathFinding = function(gameBoard, start, goal)  {
+const pathFinding = function(gameBoard, start, goal) {
   // First, create an adjacency matrix representing the paths of the gameBoard
   let matrix = [];
 
@@ -107,92 +107,85 @@ const pathFinding = function(gameBoard, start, goal)  {
       }
       else matrix[i][j] = 0; // In any other scenario, there is not a path between the two indices
     }
-    // todo: delete this:
-    if (!testing && (i == 26 || i == 84)) { // && (i > 19 && i < 440)) {
-      console.log('index: ' + i);
-      console.table(matrix[i]);
-    }
   }
-  if (!testing) console.log('matrix[26][84] = ' + matrix[26][84]);
-  testing = true; // todo: delete this
+
+  // The following portion of this function is a modified version of the A* algorithm found here: https://www.algorithms-and-technologies.com/a_star/javascript
 
   //This contains the distances from the start node to all other nodes
-      var distances = [];
-      //Initializing with a distance of "Infinity"
-      for (var i = 0; i < matrix.length; i++) distances[i] = Number.MAX_VALUE;
-      //The distance from the start node to itself is of course 0
-      distances[start] = 0;
+    var distances = [];
+    //Initializing with a distance of "Infinity"
+    for (var i = 0; i < matrix.length; i++) distances[i] = Number.MAX_VALUE;
+    //The distance from the start node to itself is of course 0
+    distances[start] = 0;
 
-      //This contains the priorities with which to visit the nodes, calculated using the heuristic.
-      var priorities = [];
-      //Initializing with a priority of "Infinity"
-      for (var i = 0; i < matrix.length; i++) priorities[i] = Number.MAX_VALUE;
-      //start node has a priority equal to straight line distance to goal. It will be the first to be expanded.
-      priorities[start] = manhattanDistance(start, goal);
+    //This contains the priorities with which to visit the nodes, calculated using the heuristic.
+    var priorities = [];
+    //Initializing with a priority of "Infinity"
+    for (var i = 0; i < matrix.length; i++) priorities[i] = Number.MAX_VALUE;
+    //start node has a priority equal to straight line distance to goal. It will be the first to be expanded.
+    priorities[start] = manhattanDistance(start, goal);
 
-      //This contains whether a node was already visited
-      var visited = [];
+    //This contains whether a node was already visited
+    var visited = [];
 
-      // While there are nodes left to visit...
-      while (true) {
+    //While there are nodes left to visit...
+    while (true) {
 
-          // ... find the node with the currently lowest priority...
-          var lowestPriority = Number.MAX_VALUE;
-          var lowestPriorityIndex = -1;
-          for (var i = 0; i < priorities.length; i++) {
-              //... by going through all nodes that haven't been visited yet
-              if (priorities[i] < lowestPriority && !visited[i]) {
-                  lowestPriority = priorities[i];
-                  lowestPriorityIndex = i;
-              }
-          }
+        // ... find the node with the currently lowest priority...
+        var lowestPriority = Number.MAX_VALUE;
+        var lowestPriorityIndex = -1;
+        for (var i = 0; i < priorities.length; i++) {
+            //... by going through all nodes that haven't been visited yet
+            if (priorities[i] < lowestPriority && !visited[i]) {
+                lowestPriority = priorities[i];
+                lowestPriorityIndex = i;
+            }
+        }
 
-          if (lowestPriorityIndex === -1) {
-              // There was no node not yet visited --> Node not found
-              return -1;
-          } else if (lowestPriorityIndex === goal) {
-              // Goal found
-              //return distances[lowestPriorityIndex]; todo
-              let path = [];
-              for (let i = 0; i < distances.length; i++) {
-                for (let j = 0; j < distances.length; j++) {
-                  if (distances[j] == i)  {
-                    path[i] = j;
-                    break; // Break out of this loop and start search for incremented i
-                  }
+        if (lowestPriorityIndex === -1) {
+            // There was no node not yet visited --> Node not found
+            return -1;
+        }
+        else if (lowestPriorityIndex === goal) { // Goal found
+            // console.log("Goal node found!");
+            //return distances[lowestPriorityIndex];
+
+            // Create a path using the distances determined
+            let path = [];
+            for (let i = 0; i < distances.length; i++) {
+              for (let j = 0; j < distances.length; j++) {
+                if (distances[j] == i)  {
+                  path[i] = j;
+                  break; // Break out of this loop and start search for incremented i
                 }
               }
+            }
 
-              // console.log('start: ' + start + '\ntarget: ' + goal + '\npath:\n' + path);
-              return path;
+            return path;
+        }
 
-              // todo: uncomment this:
-              return path[1]; // Second step in path is distance of one from start (path[0]).
-          }
+        // console.log("Visiting node " + lowestPriorityIndex + " with currently lowest priority of " + lowestPriority);
 
-           //console.log("Visiting node " + lowestPriorityIndex + " with currently lowest priority of " + lowestPriority);
+        //...then, for all neighboring nodes that haven't been visited yet....
+        for (var i = 0; i < matrix[lowestPriorityIndex].length; i++) {
+            if (matrix[lowestPriorityIndex][i] !== 0 && !visited[i]) {
+                //...if the path over this edge is shorter...
+                if (distances[lowestPriorityIndex] + matrix[lowestPriorityIndex][i] < distances[i]) {
+                    //...save this path as new shortest path
+                    distances[i] = distances[lowestPriorityIndex] + matrix[lowestPriorityIndex][i];
+                    //...and set the priority with which we should continue with this node
+                    priorities[i] = distances[i] + manhattanDistance(i, goal);
+                    // console.log("Updating distance of node " + i + " to " + distances[i] + " and priority to " + priorities[i]);
+                }
+            }
+        }
 
-          //...then, for all neighboring nodes that haven't been visited yet....
-          for (var i = 0; i < matrix[lowestPriorityIndex].length; i++) {
-              if (matrix[lowestPriorityIndex][i] == 1 && !visited[i]) { // if neighbor hasn't been visited and is traversal
-                  //...if the path over this edge is shorter...
-                  if (distances[lowestPriorityIndex] + matrix[lowestPriorityIndex][i] < distances[i]) {
-                    // console.log('setting new distance and lowest priority index to i =' + i);
-                      //...save this path as new shortest path
-                      distances[i] = distances[lowestPriorityIndex] + matrix[lowestPriorityIndex][i];
-                      //...and set the priority with which we should continue with this node
-                      priorities[i] = distances[i] + manhattanDistance(i, goal);
-                      // console.log("Updating distance of node " + i + " to " + distances[i] + " and priority to " + priorities[i]);
-                  }
-              }
-          }
+        // Lastly, note that we are finished with this node.
+        visited[lowestPriorityIndex] = true;
+        //console.log("Visited nodes: " + visited);
+        //console.log("Currently lowest distances: " + distances);
 
-          // Lastly, note that we are finished with this node.
-          visited[lowestPriorityIndex] = true;
-          //console.log("Visited nodes: " + visited);
-          //console.log("Currently lowest distances: " + distances);
-
-      }
+    }
 };
 
 // Determine the manhattan distance given two points (indices)
