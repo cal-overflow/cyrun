@@ -254,13 +254,11 @@ io.on('connection', socket => {
 
     io.to(lobby).emit('startingGame'); // Tell the lobby to begin countdown
     game(lobby, players);
-
-    // todo: delete this.
-    // controlCPU(getGameBoard(lobby), lobby, players, 0, 4);
   }
 
   // Control CPU behavior
   function controlCPU(gameBoard, lobby, players, status, role) {
+    //if (role != 4) return; // todo: delete this. This breaks out of function if player is not PacMan
     let cpu = getPlayer(lobby, role);
     var target = getIndex(lobby, 4); // Set the target value to pacman for the most common scenario
     var potentialTargetIndices = null;
@@ -281,15 +279,23 @@ io.on('connection', socket => {
 
     // If potential target indices has a value set, reduce it and find the target index closest to the cpu
     if (potentialTargetIndices != null) {
-      // Reduce method below from:  https://stackoverflow.com/a/19277804/10475867
+      // Iterate through the potential target indices and determine the manhattan distance for each of them.
+      // Comparing each calculated manhattan distances, determine the closest target
       target = potentialTargetIndices.reduce(function(prev, curr) {
-        return (Math.abs(curr - cpu.index) < Math.abs(prev - cpu.index)? curr : prev);
+        return (Constants.manhattanDistance(curr, cpu.index) < Constants.manhattanDistance(prev, cpu.index))? curr: prev;
       });
+      console.log('goal:' + target);
     }
 
     // Take the prederminted target, and change it to the closest index that is in the path determined by the pathFinding function
-    target = Constants.pathFinding(gameBoard, cpu.index, target);
-    console.log('cpu.index: ' + cpu.index + '\ntarget: ' + target);
+    // todo: Fix this:
+    let path = [];
+    path = Constants.pathFinding(gameBoard, cpu.index, target);
+    target = path[1]; // todo: delete
+    console.log('path: ' + path);
+
+    // Clear the CPU's queue
+    //setQueue(lobby, role, 0);
 
     // Set the queue (direction) based on the new target (location)
     if (target - 20 == cpu.index) setQueue(lobby, role, 20);
@@ -297,14 +303,19 @@ io.on('connection', socket => {
     else if (target + 1 == cpu.index) setQueue(lobby, role, -1);
     else if (target + 20 == cpu.index) setQueue(lobby, role, -20);
 
-    /*
+// show path on  gameboard. Develoment purposes only. // TODO:  delete this:
+  for (let i = 0; i < gameBoard.length; i++)  {
+    //if (path != undefined && path.includes(i) && i != cpu.index && i != target) {
+    if (path != undefined && path.includes(i) && target == i)  {
+      //gameBoard[i] = 10; // set index to 'path' square type (don't indclude cpu index) // todo: delete
+    }
+  }
 
+    /*
     // Choose a random direction for worst-case scenario
     let randomX = (Math.floor(Math.random() * 2) == 1)? -1: 1;
     let randomY = (Math.floor(Math.random() * 2) == 1)? -20: 20;
     let randomDirection = (Math.floor(Math.random() * 2) == 1)? randomX: randomY;
-
-
 
     var signum = 1; // Represent positivity or negativity of direction. Only needs to be changed if target is at smaller index than CPU
     if (cpu.index > target) signum = -1; // Target is at smaller index. Change to negative direction
@@ -332,8 +343,9 @@ io.on('connection', socket => {
     // Control CPU behavior if there are any CPUs.
     for (var i = 1; i < cpus.length && (getStatus(lobby) != -1); i++) {
       let cpuChance = Math.floor(Math.random() * 3);
-      if (cpus[i] == 1 && cpuChance == 0) controlCPU(gameBoard, lobby, players, getStatus(lobby), i);
+      if (cpus[i] == 1 && cpuChance == 0) controlCPU(gameBoard, lobby, players, getStatus(lobby), i); // todo: delete '&& i == 4'
     }
+
 
     // Iterate through players and determine their new position based on their direction
     players.forEach(player => {
@@ -468,7 +480,10 @@ io.on('connection', socket => {
   // Filter gameBoard and return a list (array) of the indices of only dots/pills
   function findEdibleIndices(gameBoard)  {
     let indices = [];
-    indices.push(gameBoard.findIndex(square => square == 2 || square == 6));
+    for (let i = 0; i < gameBoard.length; i++)  {
+      if (gameBoard[i] == 2 || gameBoard[i] == 6) indices.push(i);
+    }
+    //indices.push(gameBoard.findIndex(square => square == 2 || square == 6)); // todo: delete this if can't simplify above for loop like so
     return indices;
   }
 
@@ -485,7 +500,7 @@ io.on('connection', socket => {
     let statusTimer = getStatusTimer(lobby);
 
     // First check if player is colliding with nothing
-    if (gameBoard[index] == 0 || (gameBoard[index] == 8 && player.role != 4)) {
+    if (gameBoard[index] == 0 || gameBoard[index] == 10 || (gameBoard[index] == 8 && player.role != 4)) { // todo: remove gameBoard[index] == 10 statement
       return true;
     } // Player collides with dot or pill
     else if (gameBoard[index] == 6 || gameBoard[index] == 2) {

@@ -10,7 +10,8 @@ const SQUARE_TYPE = {
   GHOST: 'ghost',
   SCARED: 'scared',
   GHOSTLAIR: 'lair',
-  OUTOFBOUNDS: 'outside'
+  OUTOFBOUNDS: 'outside',
+  PATH: 'path'// todo: delete this. for Develoment purposes only
 };
 
 // Lookup array for classes
@@ -24,7 +25,8 @@ const SQUARE_LIST = [
   SQUARE_TYPE.PILL,
   SQUARE_TYPE.PACMAN,
   SQUARE_TYPE.GHOSTLAIR,
-  SQUARE_TYPE.OUTOFBOUNDS
+  SQUARE_TYPE.OUTOFBOUNDS,
+  SQUARE_TYPE.PATH // todo: delete this. for Develoment purposes only
 ];
 
 const LEVEL1 = [
@@ -91,7 +93,7 @@ const pathFinding = function(gameBoard, start, goal)  {
   for (let i = 0; i < gameBoard.length; i++)  {
     matrix[i] = [];
     for (let j = 0; j < gameBoard.length; j++)  {
-      if (gameBoard[i] == 1 || gameBoard[j] == 1) {
+      if (gameBoard[i] == 1 || gameBoard[j] == 1 || (gameBoard[start] == 7 && (gameBoard[i] == 8 || gameBoard[j] == 8))) {
         matrix[i][j] = 0; // Wall is not traversal
       }
       else if (Math.abs(i - j) == 20)  {
@@ -103,8 +105,16 @@ const pathFinding = function(gameBoard, start, goal)  {
       else if (i == j)  {
         matrix[i][j] = 1; // Indices are the same
       }
+      else matrix[i][j] = 0; // In any other scenario, there is not a path between the two indices
+    }
+    // todo: delete this:
+    if (!testing && (i == 26 || i == 84)) { // && (i > 19 && i < 440)) {
+      console.log('index: ' + i);
+      console.table(matrix[i]);
     }
   }
+  if (!testing) console.log('matrix[26][84] = ' + matrix[26][84]);
+  testing = true; // todo: delete this
 
   //This contains the distances from the start node to all other nodes
       var distances = [];
@@ -118,7 +128,7 @@ const pathFinding = function(gameBoard, start, goal)  {
       //Initializing with a priority of "Infinity"
       for (var i = 0; i < matrix.length; i++) priorities[i] = Number.MAX_VALUE;
       //start node has a priority equal to straight line distance to goal. It will be the first to be expanded.
-      priorities[start] = Math.abs(start - goal);
+      priorities[start] = manhattanDistance(start, goal);
 
       //This contains whether a node was already visited
       var visited = [];
@@ -141,27 +151,37 @@ const pathFinding = function(gameBoard, start, goal)  {
               // There was no node not yet visited --> Node not found
               return -1;
           } else if (lowestPriorityIndex === goal) {
-              // Goal node found
-              // console.log("Goal node found!");
+              // Goal found
               //return distances[lowestPriorityIndex]; todo
-              for (let i = 0; i < distances.length; i++)  {
-                if (distances[i] == 1)  {
-                  return i;
+              let path = [];
+              for (let i = 0; i < distances.length; i++) {
+                for (let j = 0; j < distances.length; j++) {
+                  if (distances[j] == i)  {
+                    path[i] = j;
+                    break; // Break out of this loop and start search for incremented i
+                  }
                 }
               }
+
+              // console.log('start: ' + start + '\ntarget: ' + goal + '\npath:\n' + path);
+              return path;
+
+              // todo: uncomment this:
+              return path[1]; // Second step in path is distance of one from start (path[0]).
           }
 
-          // console.log("Visiting node " + lowestPriorityIndex + " with currently lowest priority of " + lowestPriority);
+           //console.log("Visiting node " + lowestPriorityIndex + " with currently lowest priority of " + lowestPriority);
 
           //...then, for all neighboring nodes that haven't been visited yet....
           for (var i = 0; i < matrix[lowestPriorityIndex].length; i++) {
-              if (matrix[lowestPriorityIndex][i] !== 0 && !visited[i]) {
+              if (matrix[lowestPriorityIndex][i] == 1 && !visited[i]) { // if neighbor hasn't been visited and is traversal
                   //...if the path over this edge is shorter...
                   if (distances[lowestPriorityIndex] + matrix[lowestPriorityIndex][i] < distances[i]) {
+                    // console.log('setting new distance and lowest priority index to i =' + i);
                       //...save this path as new shortest path
                       distances[i] = distances[lowestPriorityIndex] + matrix[lowestPriorityIndex][i];
                       //...and set the priority with which we should continue with this node
-                      priorities[i] = distances[i] + Math.abs(i - goal);
+                      priorities[i] = distances[i] + manhattanDistance(i, goal);
                       // console.log("Updating distance of node " + i + " to " + distances[i] + " and priority to " + priorities[i]);
                   }
               }
@@ -173,6 +193,14 @@ const pathFinding = function(gameBoard, start, goal)  {
           //console.log("Currently lowest distances: " + distances);
 
       }
-}
+};
+
+// Determine the manhattan distance given two points (indices)
+const manhattanDistance = function(a, b)  {
+  let x = Math.abs((a % 20) - (b % 20));
+  let y = Math.abs(Math.floor((a - b)/20) + 1);
+  return x + y;
+};
 
 module.exports.pathFinding = pathFinding;
+module.exports.manhattanDistance = manhattanDistance;

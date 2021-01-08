@@ -39,7 +39,8 @@ const SQUARE_TYPE = {
   GHOST: 'ghost',
   SCARED: 'scared',
   GHOSTLAIR: 'lair',
-  OUTOFBOUNDS: 'outside'
+  OUTOFBOUNDS: 'outside',
+  PATH: 'path'// todo: delete this. for Develoment purposes only
 };
 
 // Lookup array for classes
@@ -53,7 +54,8 @@ const SQUARE_LIST = [
   SQUARE_TYPE.PILL,
   SQUARE_TYPE.PACMAN,
   SQUARE_TYPE.GHOSTLAIR,
-  SQUARE_TYPE.OUTOFBOUNDS
+  SQUARE_TYPE.OUTOFBOUNDS,
+  SQUARE_TYPE.PATH // todo: delete this. for Develoment purposes only
 ];
 
 // Get username and lobby from URL
@@ -166,6 +168,11 @@ function drawGameBoard(players, gameBoard, status){
     gameBoard.forEach((square) => {
       const div = document.createElement('div');
       div.style.cssText = `width: ${CELL_SIZE}px; height: ${CELL_SIZE}px;`;
+
+      // todo: delete the three following lines
+      //div.innerText = cells;
+      //div.style.color = 'white';
+      //div.style.fontSize = '.75em';
 
       // First determine if we are creating a ghost cell. If we are, we want to see if it needs to be flashing or not.
       // We then create a div inside of our cell so that we can have a ghost seperate from the background element (the background could be light grey or black)
