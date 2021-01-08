@@ -258,7 +258,7 @@ io.on('connection', socket => {
 
   // Control CPU behavior
   function controlCPU(gameBoard, lobby, players, status, role) {
-    //if (role != 4) return; // todo: delete this. This breaks out of function if player is not PacMan
+    // if (role != 4) return; // todo: delete this. This breaks out of function if player is not PacMan
     let cpu = getPlayer(lobby, role);
     var target = getIndex(lobby, 4); // Set the target value to pacman for the most common scenario
     var potentialTargetIndices = null;
@@ -285,6 +285,7 @@ io.on('connection', socket => {
         return (Constants.manhattanDistance(curr, cpu.index) < Constants.manhattanDistance(prev, cpu.index))? curr: prev;
       });
       // console.log('goal:' + target); // todo: delete
+      //console.log('goal: ' + target); // todo: delete
     }
 
     // Take the prederminted target, and change it to the closest index that is in the path determined by the pathFinding function
@@ -292,48 +293,36 @@ io.on('connection', socket => {
     let path = [];
     path = Constants.pathFinding(gameBoard, cpu.index, target);
     target = path[1]; // todo: delete
-    // console.log('path: ' + path); // todo: Delete
-
-    console.log('(' + role + ') goal: ' + target);
-
-    // Clear the CPU's queue
-    //setQueue(lobby, role, 0);
-
 
     // Choose a random direction for worst-case scenario
     let randomX = (Math.floor(Math.random() * 2) == 1)? -1: 1;
     let randomY = (Math.floor(Math.random() * 2) == 1)? -20: 20;
     let randomDirection = (Math.floor(Math.random() * 2) == 1)? randomX: randomY;
 
+    var signum = (cpu.index > target)? 1: -1; // Represent positivity or negativity of direction.
+
     // Set the queue (direction) based on the new target (location)
-    if (target - 20 == cpu.index) setQueue(lobby, role, 20);
-    else if (target - 1 == cpu.index) setQueue(lobby, role, 1);
-    else if (target + 1 == cpu.index) setQueue(lobby, role, -1);
-    else if (target + 20 == cpu.index) setQueue(lobby, role, -20);
-    else setQueue(lobby, role, randomDirection); // target is not in the same row or column, it is somewhere above. move randomly
-
-// show path on  gameboard. Develoment purposes only. // TODO:  delete this:
-  for (let i = 0; i < gameBoard.length; i++)  {
-    //if (path != undefined && path.includes(i) && i != cpu.index && i != target) {
-    if (path[i] == i && target == i)  {
-      //gameBoard[i] = 10; // set index to 'path' square type (don't indclude cpu index) // todo: delete
+    console.log('target: ' + target);
+    if (target + (signum*20) == cpu.index) {
+      setQueue(lobby, role, ((-1)*signum*20));
+      console.log('moving up or down');
     }
-  }
-
+    else if (target + (signum*1) == cpu.index) {
+      console.log('moving right or left');
+      setQueue(lobby, role, (((-1)*signum*1)));
+    }
+    else {
+      setQueue(lobby, role, randomDirection); // target is not in the same row or column, it is somewhere above. move randomly
+      console.log('moving in random direction');
+    }
     /*
-
-
-    var signum = 1; // Represent positivity or negativity of direction. Only needs to be changed if target is at smaller index than CPU
-    if (cpu.index > target) signum = -1; // Target is at smaller index. Change to negative direction
-
     // Use the previously determined target to set a queue/direction for the CPU
     if (cpu.index % 20 == target % 20 || gameBoard[cpu.index + (signum*1)] == 1) // Target is in the same column or it is in the row, but there's a wall in the way.
       setQueue(lobby, role, (signum*20));
 
     else if (Math.floor(cpu.index / 20) == Math.floor(target / 20) || gameBoard[cpu.index + (signum*1)] == 1) // Target is in the same row or it's in the same column, but there's a wall in the way.
       setQueue(lobby, role, (signum*1));
-*/
-    //
+      */
   }
 
   // todo: Development purposes only. DELETE THIS
@@ -348,8 +337,8 @@ io.on('connection', socket => {
 
     // Control CPU behavior if there are any CPUs.
     for (var i = 1; i < cpus.length && (getStatus(lobby) != -1); i++) {
-      let cpuChance = Math.floor(Math.random() * 3);
-      if (cpus[i] == 1 && cpuChance == 0) controlCPU(gameBoard, lobby, players, getStatus(lobby), i); // todo: delete '&& i == 4'
+      let cpuChance = Math.floor(Math.random() * 2);
+      if (cpus[i] == 1 && cpuChance == 0) controlCPU(gameBoard, lobby, players, getStatus(lobby), i);
     }
 
 
@@ -487,7 +476,11 @@ io.on('connection', socket => {
   function findEdibleIndices(gameBoard)  {
     let indices = [];
     for (let i = 0; i < gameBoard.length; i++)  {
-      if (gameBoard[i] == 2 || gameBoard[i] == 6) indices.push(i);
+
+      if (gameBoard[i] == 2 || gameBoard[i] == 6) {
+        indices.push(i);
+        //if (i == 25) console.log('adding 25 to the edible Indices'); // todo: delete
+      }
     }
     //indices.push(gameBoard.findIndex(square => square == 2 || square == 6)); // todo: delete this if can't simplify above for loop like so
     return indices;

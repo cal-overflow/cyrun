@@ -96,11 +96,8 @@ const pathFinding = function(gameBoard, start, goal) {
       if (gameBoard[i] == 1 || gameBoard[j] == 1 || (gameBoard[start] == 7 && (gameBoard[i] == 8 || gameBoard[j] == 8))) {
         matrix[i][j] = 0; // Wall is not traversal
       }
-      else if (Math.abs(i - j) == 20)  {
-        matrix[i][j] = 1; // Indices are direclty vertical of each other
-      }
-      else if (Math.abs(i - j) == 1)  {
-        matrix[i][j] = 1; // Indices are directly horizontal of each other
+      else if (Math.abs(i - j) == 20 || Math.abs(i - j) == 1)  {
+        matrix[i][j] = 1; // Indices are direclty vertical or horizontal of each other
       }
       else if (i == j)  {
         matrix[i][j] = 1; // Indices are the same
@@ -125,6 +122,14 @@ const pathFinding = function(gameBoard, start, goal) {
     //start node has a priority equal to straight line distance to goal. It will be the first to be expanded.
     priorities[start] = manhattanDistance(start, goal);
 
+    //console.log('start: ' + start);  // todo: delete
+    //console.log('goal: ' + goal); // todo: delete
+
+
+    //console.log('manhattan distance between 31 and 51: ' + manhattanDistance(31, 41)); // todo: delete this
+    //console.log('manhattan distance between 31 and 32: ' + manhattanDistance(31, 32)); // todo: delete this
+    //console.log('(' + 41 + ',' + 21 + ') manhattan distance: ' + manhattanDistance(41, 21)); // // TODO:  delete this
+
     //This contains whether a node was already visited
     var visited = [];
 
@@ -139,6 +144,7 @@ const pathFinding = function(gameBoard, start, goal) {
             if (priorities[i] < lowestPriority && !visited[i]) {
                 lowestPriority = priorities[i];
                 lowestPriorityIndex = i;
+                console.log('checking: ' + lowestPriorityIndex);
             }
         }
 
@@ -160,38 +166,31 @@ const pathFinding = function(gameBoard, start, goal) {
                 }
               }
             }
-
+            //console.log('path:\n' + path)
             return path;
         }
 
-        // console.log("Visiting node " + lowestPriorityIndex + " with currently lowest priority of " + lowestPriority);
-
-        //...then, for all neighboring nodes that haven't been visited yet....
-        for (var i = 0; i < matrix[lowestPriorityIndex].length; i++) {
-            if (matrix[lowestPriorityIndex][i] !== 0 && !visited[i]) {
-                //...if the path over this edge is shorter...
-                if (distances[lowestPriorityIndex] + matrix[lowestPriorityIndex][i] < distances[i]) {
-                    //...save this path as new shortest path
-                    distances[i] = distances[lowestPriorityIndex] + matrix[lowestPriorityIndex][i];
-                    //...and set the priority with which we should continue with this node
-                    priorities[i] = distances[i] + manhattanDistance(i, goal);
-                    // console.log("Updating distance of node " + i + " to " + distances[i] + " and priority to " + priorities[i]);
-                }
+        for (let i = 0; i < matrix[lowestPriorityIndex].length; i++)  {
+          if (!visited[i] && matrix[lowestPriorityIndex][i] !== 0)  {
+            // Check if the manhattan distance to goal of the neighbor is less than that of the lowestPriorityIndex
+            if (distances[lowestPriorityIndex] + 1 < distances[i] && manhattanDistance(i, goal) < manhattanDistance(lowestPriorityIndex, goal)) {
+              //console.log('distance at ' + lowestPriorityIndex + ' +1 is less than distance at ' + distances[i]); // todo: delete
+              distances[i] = distances[lowestPriorityIndex] + 1; // 1 aditional step
+              priorities[i] = distances[i] + manhattanDistance(i, goal);
+              //if (i == 22) console.log('setting 22 as a priority with distance: ' +  distances[i]); // todo: delete
             }
+          }
         }
-
-        // Lastly, note that we are finished with this node.
         visited[lowestPriorityIndex] = true;
-        //console.log("Visited nodes: " + visited);
-        //console.log("Currently lowest distances: " + distances);
-
-    }
+    } // end while loop
 };
 
 // Determine the manhattan distance given two points (indices)
 const manhattanDistance = function(a, b)  {
   let x = Math.abs((a % 20) - (b % 20));
-  let y = Math.abs(Math.floor((a - b)/20) + 1);
+  //if ((a == 41 && b == 21)|| (a == 21 && b == 41)) console.log('x distance between ' + a + ' and ' + b + ' = ' + x); // todo: delete
+  let y = Math.abs(Math.ceil((a - b)/20));
+  //if ((b == 21 && a == 41) || (b == 41 && a == 21)) console.log('y distance between ' + a + ' and ' + b + ' = ' + y); // todo: delete
   return x + y;
 };
 
