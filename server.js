@@ -243,7 +243,7 @@ io.on('connection', socket => {
     let user = getCurrentUser(socket.id);
     if (user != undefined)  {
       setCpuDifficulty(user.lobby, difficulty);
-      io.to(user.lobby).emit('difficultyUpdate', difficulty);
+      io.to(user.lobby).emit('difficultyUpdate', getCpuDifficulty(user.lobby));
       let difficultyName = (difficulty == 1)? "easy": ((difficulty == 2)? "normal": "hard");
       if (getLobbyUsers(user.lobby).length > 1) io.to(user.lobby).emit('message', (user.name + ' changed the CPU difficulty to ' + difficultyName));
     }
@@ -271,7 +271,8 @@ io.on('connection', socket => {
     console.log('[Update]: Game starting in lobby ' + lobby);
 
     startGame(lobby);
-
+    console.log('sending difficulty update: ' + getCpuDifficulty(lobby));
+    io.to(lobby).emit('difficultyUpdate', getCpuDifficulty(lobby)); // Update user's CPU difficulty buttons, in the event they haven't changed it yet.
     io.to(lobby).emit('startingGame'); // Tell the lobby to begin countdown
     game(lobby, players);
   }
@@ -304,18 +305,12 @@ io.on('connection', socket => {
       target = potentialTargetIndices.reduce(function(prev, curr) {
         return (Constants.manhattanDistance(curr, cpu.index) < Constants.manhattanDistance(prev, cpu.index))? curr: prev;
       });
-      // console.log('goal:' + target); // todo: delete
-      //console.log('goal: ' + target); // todo: delete
     }
 
-    // Take the prederminted target, and change it to the closest index that is in the path determined by the pathFinding function
-    // todo: Fix this:
-    if (role == 3) console.log('goal:' + target);
-    let path = [];
-    path = Constants.pathFinding(gameBoard, cpu.index, target);
-    target = path[1]; // todo: delete
+    // Take the prederminted target, and determine a path using the pathFinding function. Then set the target to the first step within said path.
+    target = Constants.pathFinding(gameBoard, cpu.index, target)[1];
 
-    // Choose a random direction for worst-case scenario
+    // Choose a random direction for worst-case scenario (no path found)
     let randomX = (Math.floor(Math.random() * 2) == 1)? -1: 1;
     let randomY = (Math.floor(Math.random() * 2) == 1)? -20: 20;
     let randomDirection = (Math.floor(Math.random() * 2) == 1)? randomX: randomY;
@@ -323,27 +318,13 @@ io.on('connection', socket => {
     var signum = (cpu.index > target)? 1: -1; // Represent positivity or negativity of direction.
 
     // Set the queue (direction) based on the new target (location)
-    if (role == 3) console.log('target: ' + target);
     if (target + (signum*20) == cpu.index) {
       setQueue(lobby, role, ((-1)*signum*20));
-      console.log('moving up or down');
     }
     else if (target + (signum*1) == cpu.index) {
-      console.log('moving right or left');
       setQueue(lobby, role, (((-1)*signum*1)));
     }
-    else {
-      setQueue(lobby, role, randomDirection); // target is not in the same row or column, it is somewhere above. move randomly
-      console.log('moving in random direction');
-    }
-    /*
-    // Use the previously determined target to set a queue/direction for the CPU
-    if (cpu.index % 20 == target % 20 || gameBoard[cpu.index + (signum*1)] == 1) // Target is in the same column or it is in the row, but there's a wall in the way.
-      setQueue(lobby, role, (signum*20));
-
-    else if (Math.floor(cpu.index / 20) == Math.floor(target / 20) || gameBoard[cpu.index + (signum*1)] == 1) // Target is in the same row or it's in the same column, but there's a wall in the way.
-      setQueue(lobby, role, (signum*1));
-      */
+    else setQueue(lobby, role, randomDirection); // A path was not found by the path-finding function. Move randomly
   }
 
   // todo: Development purposes only. DELETE THIS
@@ -358,89 +339,76 @@ io.on('connection', socket => {
     let difficulty = 4 - getCpuDifficulty(lobby); // Use CPU difficulty (1 easy, 2 normal, or 3 hard) to determine how often CPU's update their target
 
     // Control CPU behavior if there are any CPUs.
-    for (var i = 1; i < cpus.length && (getStatus(lobby) != -1); i++) {
+    for (var i = 1; i < cpus.length && (getStatus(lobby) != -1); i++)
       if (cpus[i] == 1 && Math.ceil(Math.random() * 4) > difficulty) controlCPU(gameBoard, lobby, players, getStatus(lobby), i);
-    }
 
     // Iterate through players and determine their new position based on their direction
     players.forEach(player => {
       var update = false;
       let role = player.role;
 
-      if (getQueue(lobby, role) != 0 && getQueue(lobby, role) != getDirection(lobby, role)) { // Check queue direction and act accordingly
-        if (getQueue(lobby, role) == -20)  { // Player is moving up
-          if (gameBoard[getIndex(lobby, role) - 20 ] != 1)  { // Player is not colliding with wall
-            update = true;
-          }
-        }
-        else if (getQueue(lobby, role) == 1)  { // Player is moving to the Right
-          if (gameBoard[getIndex(lobby, role) + 1] != 1)  { // Player is not colliding with wall
-            update = true;
-          }
-        }
-        else if (getQueue(lobby, role) == 20)  { // Player is moving down
-          if (gameBoard[getIndex(lobby, role) + 20 ] != 1)  { // Player is not colliding with wall
-            update = true;
-          }
-        }
-        else if (getQueue(lobby, role) == -1)  { // Player is moving to the left
-          if (gameBoard[getIndex(lobby, role) - 1] != 1)  { // Player is not colliding with wall
-              update = true;
-            }
-          }
+      // Check queue direction and act accordingly
+      if (player.queue != 0 && player.queue != player.direction) {
+        let signum = (player.queue > 0)? 1: -1; // Indication of direction (positive = forward, negative = backward).
 
-        if (update) {// Update user direction and clear queue
-          setDirection(lobby, role, getQueue(lobby, role));
+        if (player.queue % 20 == 0)  {
+          // Player is moving up or down
+          if (gameBoard[player.index + (signum*20)] != 1) update = true; // Update if player isn't colliding with wall.
+        }
+        else {
+          // Since player is moving, but it is not up or down, they must be moving left or right.
+          if (gameBoard[player.index + (signum*1)] != 1) update = true; // Update if player isn't colliding with wall.
+        }
+
+        if (update) {
+          // Update player direction and clear the player's queue.
+          setDirection(lobby, role, player.queue);
           setQueue(lobby, role, 0);
           update = false;
         }
       }
-        if (getDirection(lobby, role) == -20)  { // Player is moving up
-          if (checkCollisions(gameBoard, (getIndex(lobby, role) - 20), player, lobby)) {
-            if (gameBoard[getIndex(lobby, role) - 20 ] != 1)  { // Player is not colliding with wall
-              setIndex(lobby, role, (getIndex(lobby, role) - 20));
+
+      let signum = (getDirection(lobby, role) > 0)? 1: -1;
+
+      if (getDirection(lobby, role) == 0) update = false;
+      else if (getDirection(lobby, role) == (signum*20)) {
+        // Player is moving in a vertical direction.
+        if (checkCollisions(gameBoard, (player.index + (signum*20)), player, lobby)) {
+          if (gameBoard[player.index + (signum*20)] != 1)  {
+            setIndex(lobby, role, (player.index + (signum*20)));
+            update = true;
+          }
+        }
+      }
+      else {
+        // Player is moving in a horizontal direction.
+        // First, check whether the player is traveling through portals
+        if (player.index == 239 && getDirection(lobby, role) == 1) {
+          // Player is traveling through portal on right side.
+          if (checkCollisions(gameBoard, 220, player, lobby))  {
+            setIndex(lobby, role, 220);
+            setDirection(lobby, role, 1);
+            update = true;
+          }
+        }
+        else if (player.index == 220 && getDirection(lobby, role) == -1) {
+          // Player is traveling through portal on left side
+          if (checkCollisions(gameBoard, 239, player, lobby)) {
+            setIndex(lobby, role, 239);
+            setDirection(lobby, role, -1);
+            update = true;
+          }
+        }
+        else {
+          // Player is traveling horizontally, and not a through portal.
+          if (checkCollisions(gameBoard, (player.index + signum), player, lobby))  {
+            if (gameBoard[player.index + signum] != 1)  {
+              setIndex(lobby, role, (player.index + signum));
               update = true;
             }
           }
         }
-        else if (getDirection(lobby, role) == 1)  { // Player is moving to the Right
-          if (getIndex(lobby, role) == 239) { // Player is passing through portal on right side
-            if (checkCollisions(gameBoard, 220, player, lobby)) {
-              setIndex(lobby, role, 220);
-              setDirection(lobby, role, 1);
-              update = true;
-            }
-          }
-          else if (checkCollisions(gameBoard, (getIndex(lobby, role) + 1), player, lobby))  {
-            if (gameBoard[getIndex(lobby, role) + 1] != 1)  { // Player is not colliding with wall
-              setIndex(lobby, role, (getIndex(lobby, role) + 1));
-              update = true;
-            }
-          }
-        }
-        else if (getDirection(lobby, role) == 20)  { // Player is moving down
-          if (checkCollisions(gameBoard, (getIndex(lobby, role) + 20), player, lobby)) {
-            if (gameBoard[getIndex(lobby, role) + 20 ] != 1)  { // Player is not colliding with wall
-              setIndex(lobby, role, (getIndex(lobby, role) + 20));
-              update = true;
-            }
-          }
-        }
-        else if (getDirection(lobby, role) == -1)  { // Player is moving to the left
-          if (getIndex(lobby, role) == 220) { // Player is passing through portal on right side
-            if (checkCollisions(gameBoard, 239, player, lobby)) {
-              setIndex(lobby, role, 239);
-              setDirection(lobby, role, -1);
-              update = true;
-            }
-          }
-          else if (checkCollisions(gameBoard, (getIndex(lobby, role) - 1), player, lobby))  {
-            if (gameBoard[getIndex(lobby, role) - 1] != 1)  { // Player is not colliding with wall
-              setIndex(lobby, role, (getIndex(lobby, role) - 1));
-              update = true;
-            }
-          }
-        }
+      }
 
       if (update) {
         gameBoard[getPrevIndex(lobby, role)] = getPrevPosType(lobby, role);
@@ -500,10 +468,8 @@ io.on('connection', socket => {
 
       if (gameBoard[i] == 2 || gameBoard[i] == 6) {
         indices.push(i);
-        //if (i == 25) console.log('adding 25 to the edible Indices'); // todo: delete
       }
     }
-    //indices.push(gameBoard.findIndex(square => square == 2 || square == 6)); // todo: delete this if can't simplify above for loop like so
     return indices;
   }
 

@@ -86,12 +86,15 @@ socket.on('difficultyUpdate', (difficulty) => {
   normal.style.backgroundColor = "#0069d9";
   hard.style.backgroundColor = "#0069d9";
   switch (difficulty) {
+    case 1:
     case "1":
       easy.style.backgroundColor = "#343a40";
       break;
+    case 2:
     case "2":
       normal.style.backgroundColor = "#343a40";
       break;
+    case 3:
     case "3":
       hard.style.backgroundColor = "#343a40";
       break;
