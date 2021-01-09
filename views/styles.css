@@ -140,8 +140,8 @@ footer p  {
 
 /* chatbox and user list styling on lobby page*/
 #chat, #users_lobby {
-  min-height: 500px;
-  height: 500px;
+  min-height: 600px;
+  height: 600px;
   position: relative;
 }
 
@@ -169,7 +169,7 @@ footer p  {
 
   @media only screen and (min-width: 951px) {
     #users_lobby  {
-      min-height: 680px;
+      min-height: 725px;
       height: auto;
     }
     #users  {
@@ -179,8 +179,8 @@ footer p  {
 
   @media only screen and (max-width: 950px) {
     #users_lobby  {
-      min-height: 500px;
-      height: 550px;
+      min-height: 600px;
+      height: 650px;
     }
   }
 
@@ -284,6 +284,14 @@ footer p  {
   bottom: 3px;
   text-align: center;
 }
+
+#cpu-difficulty {
+  clear: both;
+  width: 100%;
+  margin-top: 10px;
+  text-align: center;
+}
+
 
 #wrapper {
   position: relative;
@@ -434,10 +442,6 @@ li{
   text-align: center;
   font-size: .5em;
   color: white;
-}
-
-.path {
-  background-color: orange;
 }
 
 .ghost {

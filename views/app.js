@@ -3,20 +3,22 @@ const socket = io();
 const lobbyName = document.getElementById('gamelobby');
 const userSection = document.getElementById('users_lobby');
 const userList = document.getElementById('users');
-const leaveLobby = document.getElementById('leave_game');
 const chat = document.getElementById('chat');
 const chatbox = document.getElementById('chatbox')
 const sendChat = document.getElementById('send');
 const beginGameBtn = document.getElementById('begin_game');
+const leaveLobby = document.getElementById('leave_game');
+const easy = document.getElementById('easy');
+const normal = document.getElementById('normal');
+const hard = document.getElementById('hard');
 const footerMsg = document.getElementById('footerMsg');
 const countdown = document.getElementById('countdown');
-const gameGrid = document.querySelector('#game');
+const gameGrid = document.getElementById('game');
 const winnerText = document.getElementById('winner');
 const finalScoreboard = document.getElementById('finalScoreboard');
 const matchTime = document.getElementById('matchTime');
 const gameOver = document.getElementById('endgameboard');
 const playAgain = document.getElementById('playagain');
-
 
 var localBoard;
 var playerEnabled = -1;
@@ -39,8 +41,7 @@ const SQUARE_TYPE = {
   GHOST: 'ghost',
   SCARED: 'scared',
   GHOSTLAIR: 'lair',
-  OUTOFBOUNDS: 'outside',
-  PATH: 'path'// todo: delete this. for Develoment purposes only
+  OUTOFBOUNDS: 'outside'
 };
 
 // Lookup array for classes
@@ -54,8 +55,7 @@ const SQUARE_LIST = [
   SQUARE_TYPE.PILL,
   SQUARE_TYPE.PACMAN,
   SQUARE_TYPE.GHOSTLAIR,
-  SQUARE_TYPE.OUTOFBOUNDS,
-  SQUARE_TYPE.PATH // todo: delete this. for Develoment purposes only
+  SQUARE_TYPE.OUTOFBOUNDS
 ];
 
 // Get username and lobby from URL
@@ -79,6 +79,25 @@ socket.on('voteCount', ({count, total}) =>  {
   }
 });
 
+// Handle difficulty change (Re-style buttons)
+socket.on('difficultyUpdate', (difficulty) => {
+  // Set the button color
+  easy.style.backgroundColor = "#0069d9";
+  normal.style.backgroundColor = "#0069d9";
+  hard.style.backgroundColor = "#0069d9";
+  switch (difficulty) {
+    case "1":
+      easy.style.backgroundColor = "#343a40";
+      break;
+    case "2":
+      normal.style.backgroundColor = "#343a40";
+      break;
+    case "3":
+      hard.style.backgroundColor = "#343a40";
+      break;
+  }
+});
+
 // Initial lobby and User/player info display
 socket.on('initDisplayLobbyInfo', ({lobby, players}) => {
   countdown.style.visibility = "visible"; // Ensure countdown is visible (it is set to hidden after each game)
@@ -91,7 +110,12 @@ socket.on('initDisplayLobbyInfo', ({lobby, players}) => {
 
 // Handle lobby player information
 socket.on('lobbyPlayers', ({players}) => {
-  outputPlayers(players);
+  outputPlayers(players, users);
+});
+
+// Hide or show 'cpu difficulty' section (based on whether CPU players are present)
+socket.on('toggleCpuDifficulty', (users) =>  {
+  document.getElementById('cpu-difficulty').style.display = (users.length < 4)? "block": "none";
 });
 
 // Add lobby name to page
@@ -99,7 +123,7 @@ function outputLobbyName(lobby) {
   lobbyName.innerText = "Lobby " + lobby;
 }
 
-// Display players
+// Display players. Users is by default set to null
 function outputPlayers(players){
   players.forEach(player => {
     let playerDisplay = document.getElementById('user' + player.role);
@@ -109,7 +133,7 @@ function outputPlayers(players){
     let score = document.createElement('span');
 
     name.innerHTML = player.name;
-    score.innerHTML = "Score: 0";
+    // score.innerHTML = "Score: 0"; // todo: determine if this is wanted
 
     if (thisUsername === player.name) {
       name.setAttribute('class', 'activePlayerName');
@@ -130,6 +154,8 @@ function outputPlayers(players){
     p.appendChild(score);
     playerDisplay.appendChild(p);
   });
+
+
 }
 
 function updateScores(players)  {
@@ -147,7 +173,7 @@ socket.on('loadBoard',({players, gameBoard}) => {
 });
 
 // gameUpdates from server (i.e. player position change). This is constant
-socket.on('gameUpdate', ({players, gameBoard, status}) => {
+socket.on('gameUpdate', ({users, players, gameBoard, status}) => {
   for (var i = j = 0; i < localBoard.length && j < gameBoard.length; i++) {
     if (localBoard[i] != 1) { // if element in localBoard is not a wall update it
       localBoard[i] = gameBoard[j++];
@@ -213,7 +239,7 @@ function rotateDiv(position, degree){
   this.grid[position].style.transform = `rotate({deg}deg)`;
 }
 
-// Lobby Messages from Server
+// Lobby Messages from another user
 socket.on('lobbyMessage', ({user, username, message}) => {
   const p = document.createElement('p');
   const usernameSpan = document.createElement('span');
@@ -227,7 +253,7 @@ socket.on('lobbyMessage', ({user, username, message}) => {
   printChatMessage(p);
 });
 
-// Messages from Server
+// Messages from server
 socket.on('message', message => {
   const p = document.createElement('p');
   p.innerText = message;
@@ -354,6 +380,11 @@ playAgain.onclick = function() {
     clearTimeout(timer);
     clearInterval(interval);
 };
+
+// Event Listeners for CPU difficulty buttons
+easy.onclick = function() { socket.emit('difficultyChange', '1'); };
+normal.onclick = function() { socket.emit('difficultyChange', '2'); };
+hard.onclick = function() { socket.emit('difficultyChange', '3'); };
 
 // Leave lobby
 leaveLobby.addEventListener('click', (e) =>  {

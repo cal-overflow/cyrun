@@ -11,7 +11,6 @@ const SQUARE_TYPE = {
   SCARED: 'scared',
   GHOSTLAIR: 'lair',
   OUTOFBOUNDS: 'outside',
-  PATH: 'path'// todo: delete this. for Develoment purposes only
 };
 
 // Lookup array for classes
@@ -26,7 +25,6 @@ const SQUARE_LIST = [
   SQUARE_TYPE.PACMAN,
   SQUARE_TYPE.GHOSTLAIR,
   SQUARE_TYPE.OUTOFBOUNDS,
-  SQUARE_TYPE.PATH // todo: delete this. for Develoment purposes only
 ];
 
 const LEVEL1 = [
@@ -84,8 +82,6 @@ const LEVEL2 = [
 module.exports.LEVEL1 = LEVEL1;
 module.exports.LEVEL2 = LEVEL2;
 
-var testing = false; // todo: delete this! Develoment purposes only.
-
 const pathFinding = function(gameBoard, start, goal) {
   // First, create an adjacency matrix representing the paths of the gameBoard
   let matrix = [];
@@ -99,8 +95,8 @@ const pathFinding = function(gameBoard, start, goal) {
       else if (Math.abs(i - j) == 20 || Math.abs(i - j) == 1)  {
         matrix[i][j] = 1; // Indices are direclty vertical or horizontal of each other
       }
-      else if (i == j)  {
-        matrix[i][j] = 1; // Indices are the same
+      else if (i == j || (i == 220 && j == 239) || (i == 239 && j == 220))  {
+        matrix[i][j] = 1; // Indices are portals or the same
       }
       else matrix[i][j] = 0; // In any other scenario, there is not a path between the two indices
     }
@@ -144,7 +140,7 @@ const pathFinding = function(gameBoard, start, goal) {
             if (priorities[i] < lowestPriority && !visited[i]) {
                 lowestPriority = priorities[i];
                 lowestPriorityIndex = i;
-                console.log('checking: ' + lowestPriorityIndex);
+                if (gameBoard[start] == 5) console.log('checking: ' + lowestPriorityIndex);
             }
         }
 

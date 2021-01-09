@@ -25,7 +25,9 @@ const {
   setRoles,
   getRoles,
   setCpus,
-  getCpus
+  getCpus,
+  setCpuDifficulty,
+  getCpuDifficulty
 } = require('./utils/games');
 // User (stores user)
 const {
@@ -110,6 +112,9 @@ io.on('connection', socket => {
         beginGame(getLobbyPlayers(user.lobby), user.lobby);
       }
 
+      io.to(user.lobby).emit('toggleCpuDifficulty', (getLobbyUsers(user.lobby)));
+      socket.emit('difficultyUpdate', getCpuDifficulty(lobby));
+
       // Update the active lobbies list (on index page)
       io.emit('lobbyList', (io.sockets.adapter.rooms));
     }
@@ -129,16 +134,12 @@ io.on('connection', socket => {
     let roles = getRoles(lobby).slice();
     let cpus = getCpus(lobby).slice();
 
-    // Set random player roles
-    let role = 0;
-    while (roles[role] == 1)  { // find a new role if this one is already taken
-      role = Math.floor(Math.random() * 4) + 1;
-    }
-    setPlayerAssignment(user.id, role);
-    roles[role] = 1;
-
     // If this is the first user to join this lobby create all 4 players (3 to be filled or controlled by server unless filled)
     if (getLobbyUsers(lobby).length == 1 || (!firstGame && getLobbyPlayers(lobby).length ==  0)) {
+      // todo: change or keep this (see commented code above if statement)
+      setPlayerAssignment(user.id, 4); // assign first player pacman (might change this)
+      roles[4] = 1;
+
       // Link player and user together (example: user.playerAssignment --> player.role)
       const player = playerJoin(user.name, lobby, getPlayerAssignment(user.id));
 
@@ -158,6 +159,13 @@ io.on('connection', socket => {
       }
     } // This is not the first player to join the lobby, so we need to assign them a player (replacing/removing CPU of their assigned role)
     else {
+      let role = 0;
+      while (roles[role] == 1)  { // find a new role if this one is already taken
+        role = Math.floor(Math.random() * 4) + 1;
+      }
+      setPlayerAssignment(user.id, role);
+      roles[role] = 1;
+
       setPlayerName(user.name, lobby, role);
       cpus[role] = 0;
 
@@ -229,6 +237,18 @@ io.on('connection', socket => {
       beginGame(getLobbyPlayers(user.lobby), user.lobby);
   });
 
+  // A user has requested the difficulty changes
+  socket.on('difficultyChange', (difficulty) => {
+    console.log('difficulty change');
+    let user = getCurrentUser(socket.id);
+    if (user != undefined)  {
+      setCpuDifficulty(user.lobby, difficulty);
+      io.to(user.lobby).emit('difficultyUpdate', difficulty);
+      let difficultyName = (difficulty == 1)? "easy": ((difficulty == 2)? "normal": "hard");
+      if (getLobbyUsers(user.lobby).length > 1) io.to(user.lobby).emit('message', (user.name + ' changed the CPU difficulty to ' + difficultyName));
+    }
+  });
+
   // Choose a random level (1 or 2) and store a copy of that level as gameBoard
   function createGameBoard(lobby)  {
     let choice = Math.floor(Math.random() * (3 - 1)) + 1; // max 2 (exclusive) min 1 (inclusive)
@@ -290,6 +310,7 @@ io.on('connection', socket => {
 
     // Take the prederminted target, and change it to the closest index that is in the path determined by the pathFinding function
     // todo: Fix this:
+    if (role == 3) console.log('goal:' + target);
     let path = [];
     path = Constants.pathFinding(gameBoard, cpu.index, target);
     target = path[1]; // todo: delete
@@ -302,7 +323,7 @@ io.on('connection', socket => {
     var signum = (cpu.index > target)? 1: -1; // Represent positivity or negativity of direction.
 
     // Set the queue (direction) based on the new target (location)
-    console.log('target: ' + target);
+    if (role == 3) console.log('target: ' + target);
     if (target + (signum*20) == cpu.index) {
       setQueue(lobby, role, ((-1)*signum*20));
       console.log('moving up or down');
@@ -334,13 +355,12 @@ io.on('connection', socket => {
   function game(lobby, players) {
     let gameBoard = getGameBoard(lobby);
     let cpus = getCpus(lobby);
+    let difficulty = 4 - getCpuDifficulty(lobby); // Use CPU difficulty (1 easy, 2 normal, or 3 hard) to determine how often CPU's update their target
 
     // Control CPU behavior if there are any CPUs.
     for (var i = 1; i < cpus.length && (getStatus(lobby) != -1); i++) {
-      let cpuChance = Math.floor(Math.random() * 2);
-      if (cpus[i] == 1 && cpuChance == 0) controlCPU(gameBoard, lobby, players, getStatus(lobby), i);
+      if (cpus[i] == 1 && Math.ceil(Math.random() * 4) > difficulty) controlCPU(gameBoard, lobby, players, getStatus(lobby), i);
     }
-
 
     // Iterate through players and determine their new position based on their direction
     players.forEach(player => {
@@ -429,6 +449,7 @@ io.on('connection', socket => {
         gameBoard[getIndex(lobby, role)] = (role == 4)? 7: role + 2;
 
         io.to(lobby).emit('gameUpdate', {
+          users: getLobbyUsers(lobby),
           players: getLobbyPlayers(lobby),
           gameBoard: gameBoard.filter(removeWalls), // Sends array without walls (sending stationary data is pointless and causes lag)
           status: getStatus(lobby)
@@ -720,8 +741,9 @@ io.on('connection', socket => {
           console.log('[Update]: Game ending in lobby ' + user.lobby);
         }
         else if (userLeft) {
+          // Send lobby updated information regarding users, players, and the game
+          io.to(user.lobby).emit('toggleCpuDifficulty', (getLobbyUsers(user.lobby)));
 
-          // Send users and lobby info
           io.to(user.lobby).emit('lobbyPlayers', {
             lobby: user.lobby,
             players: getLobbyPlayers(user.lobby)

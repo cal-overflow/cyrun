@@ -13,7 +13,9 @@ function newGame(lobby) {
     gameOver: false,
     // Array represents available roles (0's are empty roles, 1's are user occupied roles, and 2's are cpu occupied roles)
     roles: [1, 0, 0, 0, 0],
-    // Array represents the players controlled by CPU's (0's are non-cpu players, 1's are CPU players, and 2's are ignored)
+    // Array represents the players controlled by CPU's
+    // Indices 1 - 4 represent player roles controlled by CPU's (0's are non-cpu players, 1's are CPU players, and 2's are ignored)
+    // Index 1 represents the difficulty of CPU's (1 easy, 2 normal, 3 hard). This is used to determine how frequently the CPU updates their target.
     cpus: [2, 0, 0, 0, 0]
   };
 
@@ -127,6 +129,16 @@ function getCpus(lobby)  {
   return getGame(lobby).cpus;
 }
 
+// Set the CPU difficulty: 1 - easy, 2 - medium, 3 - hard
+function setCpuDifficulty(lobby, n) {
+  getGame(lobby).cpus[0] = n;
+}
+
+// Get the Cpu difficulty: 1 - easy, 2 - medium, 3 - hard
+function getCpuDifficulty(lobby)  {
+  return getGame(lobby).cpus[0];
+}
+
 module.exports = {
   newGame,
   getGame,
@@ -147,5 +159,7 @@ module.exports = {
   setRoles,
   getRoles,
   setCpus,
-  getCpus
+  getCpus,
+  setCpuDifficulty,
+  getCpuDifficulty
 };
