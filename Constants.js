@@ -50,7 +50,7 @@ const LEVEL1 = [
   1, 6, 1, 1, 2, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 2, 1, 1, 6, 1,
   1, 2, 1, 1, 2, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 2, 1, 1, 2, 1,
   1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1,
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 ];
 
 const LEVEL2 = [
@@ -58,7 +58,7 @@ const LEVEL2 = [
   1, 2, 2, 2, 2, 0, 0, 8, 8, 8, 8, 8, 8, 0, 2, 2, 2, 2, 2, 1,
   1, 2, 6, 1, 2, 1, 1, 1, 8, 8, 8, 8, 1, 1, 1, 2, 1, 6, 2, 1,
   1, 2, 1, 1, 2, 1, 1, 1, 8, 8, 8, 8, 1, 1, 1, 2, 1, 1, 2, 1,
-  1, 2, 2, 2, 2, 2, 6, 1, 1, 1, 1, 1, 1, 6, 2, 2, 2, 2, 2, 1,
+  1, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 1,
   1, 2, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 1, 2, 1,
   1, 2, 2, 2, 2, 1, 2, 2, 2, 1, 1, 2, 2, 2, 1, 2, 2, 2, 2, 1,
   1, 2, 1, 1, 2, 1, 2, 1, 2, 1, 1, 2, 1, 2, 1, 2, 1, 1, 2, 1,
@@ -69,21 +69,47 @@ const LEVEL2 = [
   1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1,
   1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1,
   1, 2, 1, 1, 2, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 2, 1, 1, 2, 1,
-  1, 2, 1, 1, 2, 1, 1, 2, 1, 2, 2, 1, 2, 1, 1, 2, 1, 1, 2, 1,
-  1, 2, 2, 2, 2, 1, 2, 2, 1, 6, 6, 1, 2, 2, 1, 2, 2, 2, 2, 1,
+  1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1,
+  1, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1,
   1, 2, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 1, 2, 1,
   1, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 1,
   1, 2, 1, 1, 2, 1, 1, 2, 2, 2, 2, 2, 2, 1, 1, 2, 1, 1, 2, 1,
   1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1,
   1, 2, 6, 2, 2, 2, 2, 2, 1, 9, 9, 1, 2, 2, 2, 2, 2, 6, 2, 1,
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 9, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 9, 1, 1, 1, 1, 1, 1, 1, 1, 1
+];
+
+const LEVEL3 = [
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+  1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1,
+  1, 2, 1, 1, 2, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 2, 1, 1, 2, 1,
+  1, 2, 1, 1, 2, 8, 8, 8, 1, 2, 2, 1, 8, 8, 8, 2, 1, 1, 2, 1,
+  1, 2, 1, 1, 2, 8, 8, 8, 1, 2, 2, 1, 8, 8, 8, 2, 1, 1, 2, 1,
+  1, 2, 1, 1, 2, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 2, 1, 1, 2, 1,
+  1, 2, 2, 2, 2, 1, 6, 2, 2, 2, 2, 2, 2, 6, 1, 2, 2, 2, 2, 1,
+  1, 2, 1, 1, 2, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 2, 1, 1, 2, 1,
+  1, 2, 1, 1, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 1, 1, 2, 1,
+  1, 2, 1, 1, 2, 1, 2, 1, 2, 1, 1, 2, 1, 2, 1, 2, 1, 1, 2, 1,
+  1, 2, 1, 1, 2, 1, 2, 1, 2, 1, 1, 2, 1, 2, 1, 2, 1, 1, 2, 1,
+  0, 0, 0, 0, 2, 2, 2, 1, 2, 1, 1, 2, 1, 2, 2, 2, 2, 0, 0, 0,
+  1, 2, 1, 2, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 2, 1, 2, 1,
+  1, 2, 1, 2, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 2, 1, 2, 1,
+  1, 2, 1, 2, 1, 2, 1, 1, 0, 0, 0, 0, 1, 1, 2, 1, 2, 1, 2, 1,
+  1, 2, 1, 2, 2, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 2, 2, 1, 2, 1,
+  1, 2, 1, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 1, 2, 1,
+  1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1,
+  1, 2, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 1,
+  1, 2, 2, 6, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 6, 2, 2, 1,
+  1, 2, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 1,
+  1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1,
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 ];
 
 module.exports.LEVEL1 = LEVEL1;
 module.exports.LEVEL2 = LEVEL2;
+module.exports.LEVEL3 = LEVEL3;
 
-const pathFinding = function(gameBoard, start, goal) {
-  // First, create an adjacency matrix representing the paths of the gameBoard
+const pathFinding = function(gameBoard, start, goal) {// First, create an adjacency matrix representing the paths of the gameBoard
   let matrix = [];
 
   for (let i = 0; i < gameBoard.length; i++)  {
@@ -104,7 +130,7 @@ const pathFinding = function(gameBoard, start, goal) {
 
   // The following portion of this function is a modified version of the A* algorithm found here: https://www.algorithms-and-technologies.com/a_star/javascript
 
-  //This contains the distances from the start node to all other nodes
+    //This contains the distances from the start node to all other nodes
     var distances = [];
     //Initializing with a distance of "Infinity"
     for (var i = 0; i < matrix.length; i++) distances[i] = Number.MAX_VALUE;
@@ -117,14 +143,6 @@ const pathFinding = function(gameBoard, start, goal) {
     for (var i = 0; i < matrix.length; i++) priorities[i] = Number.MAX_VALUE;
     //start node has a priority equal to straight line distance to goal. It will be the first to be expanded.
     priorities[start] = manhattanDistance(start, goal);
-
-    //console.log('start: ' + start);  // todo: delete
-    //console.log('goal: ' + goal); // todo: delete
-
-
-    //console.log('manhattan distance between 31 and 51: ' + manhattanDistance(31, 41)); // todo: delete this
-    //console.log('manhattan distance between 31 and 32: ' + manhattanDistance(31, 32)); // todo: delete this
-    //console.log('(' + 41 + ',' + 21 + ') manhattan distance: ' + manhattanDistance(41, 21)); // // TODO:  delete this
 
     //This contains whether a node was already visited
     var visited = [];
@@ -140,7 +158,6 @@ const pathFinding = function(gameBoard, start, goal) {
             if (priorities[i] < lowestPriority && !visited[i]) {
                 lowestPriority = priorities[i];
                 lowestPriorityIndex = i;
-                if (gameBoard[start] == 5) console.log('checking: ' + lowestPriorityIndex);
             }
         }
 
@@ -149,9 +166,6 @@ const pathFinding = function(gameBoard, start, goal) {
             return -1;
         }
         else if (lowestPriorityIndex === goal) { // Goal found
-            // console.log("Goal node found!");
-            //return distances[lowestPriorityIndex];
-
             // Create a path using the distances determined
             let path = [];
             for (let i = 0; i < distances.length; i++) {
@@ -162,7 +176,6 @@ const pathFinding = function(gameBoard, start, goal) {
                 }
               }
             }
-            //console.log('path:\n' + path)
             return path;
         }
 
@@ -170,10 +183,8 @@ const pathFinding = function(gameBoard, start, goal) {
           if (!visited[i] && matrix[lowestPriorityIndex][i] !== 0)  {
             // Check if the manhattan distance to goal of the neighbor is less than that of the lowestPriorityIndex
             if (distances[lowestPriorityIndex] + 1 < distances[i] && manhattanDistance(i, goal) < manhattanDistance(lowestPriorityIndex, goal)) {
-              //console.log('distance at ' + lowestPriorityIndex + ' +1 is less than distance at ' + distances[i]); // todo: delete
               distances[i] = distances[lowestPriorityIndex] + 1; // 1 aditional step
               priorities[i] = distances[i] + manhattanDistance(i, goal);
-              //if (i == 22) console.log('setting 22 as a priority with distance: ' +  distances[i]); // todo: delete
             }
           }
         }

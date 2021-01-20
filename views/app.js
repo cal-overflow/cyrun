@@ -136,8 +136,6 @@ function outputPlayers(players){
     let score = document.createElement('span');
 
     name.innerHTML = player.name;
-    // score.innerHTML = "Score: 0"; // todo: determine if this is wanted
-
     if (thisUsername === player.name) {
       name.setAttribute('class', 'activePlayerName');
     }
@@ -157,8 +155,6 @@ function outputPlayers(players){
     p.appendChild(score);
     playerDisplay.appendChild(p);
   });
-
-
 }
 
 function updateScores(players)  {
@@ -197,11 +193,6 @@ function drawGameBoard(players, gameBoard, status){
     gameBoard.forEach((square) => {
       const div = document.createElement('div');
       div.style.cssText = `width: ${CELL_SIZE}px; height: ${CELL_SIZE}px;`;
-
-      // todo: delete the three following lines
-      //div.innerText = cells;
-      //div.style.color = 'white';
-      //div.style.fontSize = '.75em';
 
       // First determine if we are creating a ghost cell. If we are, we want to see if it needs to be flashing or not.
       // We then create a div inside of our cell so that we can have a ghost seperate from the background element (the background could be light grey or black)
@@ -270,7 +261,6 @@ function printChatMessage(p)  {
 
 // gameOver from server
 socket.on('gameOver', ({lobby, players, gameTime}) => {
-  //socket.emit('ackGameEnd', {id : socket.id}); // todo: handle gameOver process
   finalScoreboard.innerHTML = ""; // Clear scorebaord
   playerEnabled = -1; // Player movement disabled
   let ghostTotal = 0;
@@ -360,11 +350,6 @@ sendChat.addEventListener('click', (e) => {
   }
 });
 
-// Develoment purposes only. Delete this. todo
-function endgame()  {
-  socket.emit('simGameOver');
-}
-
 // Begin the game
 beginGameBtn.addEventListener('click', (e) => {
   e.preventDefault();
@@ -401,11 +386,6 @@ document.addEventListener('keydown', function(event)	{
 		sendChat.click();
 	}
 }, true);
-
-// Develoment purposes only. Delete this. todo
-function statusChange()  {
-  socket.emit('statusChange');
-}
 
 // The server is telling the clients that a game is starting
 socket.on('startingGame', () => {

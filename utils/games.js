@@ -42,7 +42,8 @@ function clearGame(lobby) {
 function startGame(lobby) {
   getGame(lobby).timer = new Date();
   getGame(lobby).status = -1; // Set the status to -1 for the first five seconds so the CPU players don't move before the game starts
-  setTimeout(function() {getGame(lobby).status = 0;}, 5000); // Set the status back to 0.
+  // Set the status back to 0 after 5 second countdown. (Only do so if game is not undefined, as otherwise the server will crash in the rare case of all players leaving during pre-game countdown).
+  setTimeout(function() {if (getGame(lobby) != undefined) getGame(lobby).status = 0;}, 5000);
 }
 
 // End a game. Stop and return the game timer

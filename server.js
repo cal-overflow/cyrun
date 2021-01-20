@@ -101,7 +101,7 @@ io.on('connection', socket => {
       socket.join(user.lobby);
       const users = getLobbyUsers(user.lobby);
 
-      console.log('[Update]: User joined lobby ' + lobby + ' (user: ' + username + ')');
+      console.log('[Lobby ' + lobby + ']: User ' + username + ' joined');
       socket.emit('message', 'Welcome to CyRun lobby ' + user.lobby + '.'); // Welcome current user to lobby.
       socket.broadcast.to(user.lobby).emit('message', user.name + ' joined the lobby.'); // Broadcast that a user connected
 
@@ -136,8 +136,7 @@ io.on('connection', socket => {
 
     // If this is the first user to join this lobby create all 4 players (3 to be filled or controlled by server unless filled)
     if (getLobbyUsers(lobby).length == 1 || (!firstGame && getLobbyPlayers(lobby).length ==  0)) {
-      // todo: change or keep this (see commented code above if statement)
-      setPlayerAssignment(user.id, 4); // assign first player pacman (might change this)
+      setPlayerAssignment(user.id, 4); // assign first player pacman
       roles[4] = 1;
 
       // Link player and user together (example: user.playerAssignment --> player.role)
@@ -203,7 +202,10 @@ io.on('connection', socket => {
           setPrevPosType(lobby, player.role, 8);
         }
         else { // IF player is pacman spawn accordingly
-          var pacmanStart = Math.floor(Math.random() * (292 - 288)) + 288;
+          var pacmanStart = 0;
+          while (gameBoard[pacmanStart] != 0)
+            pacmanStart = Math.floor(Math.random() * (292 - 288)) + 288;
+
           setIndex(lobby, player.role, pacmanStart);
           setPrevIndex(lobby, player.role, pacmanStart);
           gameBoard[getIndex(lobby, player.role)] = 7;
@@ -251,7 +253,7 @@ io.on('connection', socket => {
 
   // Choose a random level (1 or 2) and store a copy of that level as gameBoard
   function createGameBoard(lobby)  {
-    let choice = Math.floor(Math.random() * (3 - 1)) + 1; // max 2 (exclusive) min 1 (inclusive)
+    let choice = Math.floor(Math.random() * (5 - 1)); // max 3 (exclusive) min 1 (inclusive)
 
     switch (choice) {
       case 1:
@@ -259,6 +261,9 @@ io.on('connection', socket => {
         break;
       case 2:
         setGameBoard(lobby, Constants.LEVEL2.slice()); // copy LEVEL2 in Constants.js
+        break;
+      case 3:
+        setGameBoard(lobby, Constants.LEVEL3.slice()); // copy LEVEL3 in Constants.js
         break;
     }
 
@@ -268,10 +273,9 @@ io.on('connection', socket => {
 
   // Set starting positions of each player and begin the game
   function beginGame(players, lobby)  {
-    console.log('[Update]: Game starting in lobby ' + lobby);
+    console.log('[Lobby ' + lobby + ']: Game starting');
 
     startGame(lobby);
-    console.log('sending difficulty update: ' + getCpuDifficulty(lobby));
     io.to(lobby).emit('difficultyUpdate', getCpuDifficulty(lobby)); // Update user's CPU difficulty buttons, in the event they haven't changed it yet.
     io.to(lobby).emit('startingGame'); // Tell the lobby to begin countdown
     game(lobby, players);
@@ -279,7 +283,6 @@ io.on('connection', socket => {
 
   // Control CPU behavior
   function controlCPU(gameBoard, lobby, players, status, role) {
-    // if (role != 4) return; // todo: delete this. This breaks out of function if player is not PacMan
     let cpu = getPlayer(lobby, role);
     var target = getIndex(lobby, 4); // Set the target value to pacman for the most common scenario
     var potentialTargetIndices = null;
@@ -318,19 +321,10 @@ io.on('connection', socket => {
     var signum = (cpu.index > target)? 1: -1; // Represent positivity or negativity of direction.
 
     // Set the queue (direction) based on the new target (location)
-    if (target + (signum*20) == cpu.index) {
-      setQueue(lobby, role, ((-1)*signum*20));
-    }
-    else if (target + (signum*1) == cpu.index) {
-      setQueue(lobby, role, (((-1)*signum*1)));
-    }
+    if (target + (signum*20) == cpu.index) setQueue(lobby, role, ((-1)*signum*20));
+    else if (target + (signum*1) == cpu.index) setQueue(lobby, role, (((-1)*signum*1)));
     else setQueue(lobby, role, randomDirection); // A path was not found by the path-finding function. Move randomly
   }
-
-  // todo: Development purposes only. DELETE THIS
-  socket.on('statusChange', () => {
-    switchStatus(getCurrentUser(socket.id).lobby);
-  });
 
   // Constant updates between clients and server (real-time game)
   function game(lobby, players) {
@@ -432,7 +426,7 @@ io.on('connection', socket => {
 
     // Check if game is over and respond accordingly
     if (checkGameStatus(lobby))  {
-      console.log('[Update]: Game ending in lobby ' + lobby);
+      console.log('[Lobby ' + lobby + ']: Game ending');
       io.to(lobby).emit('gameOver', {
         lobby: lobby,
         players: getLobbyPlayers(lobby),
@@ -486,7 +480,7 @@ io.on('connection', socket => {
     let statusTimer = getStatusTimer(lobby);
 
     // First check if player is colliding with nothing
-    if (gameBoard[index] == 0 || gameBoard[index] == 10 || (gameBoard[index] == 8 && player.role != 4)) { // todo: remove gameBoard[index] == 10 statement
+    if (gameBoard[index] == 0 || (gameBoard[index] == 8 && player.role != 4)) {
       return true;
     } // Player collides with dot or pill
     else if (gameBoard[index] == 6 || gameBoard[index] == 2) {
@@ -543,7 +537,6 @@ io.on('connection', socket => {
           players.forEach(player => {
             if (index == getIndex(lobby, player.role)) {
               incrementScore(lobby, player.role, 15); // Ghost killed pacman and increases score
-              //setPrevPosType(user.id, 0); // Replace pacman with empty space after ghost moves. todo delete
             }
           });
           gameBoard[getIndex(lobby, player.role)] = 0; // Pacman ran into ghost. Their character disappears
@@ -564,7 +557,6 @@ io.on('connection', socket => {
           }
           else { // Pacman can't eat ghosts and is killed
             incrementScore(lobby, player.role, 15); // Ghost killed pacman
-            //setPrevPosType(user.id, 0); // Ensures that ghost does not drop a dot or pill after moving again. todo delete
             players.forEach(player => {
               if (index == getIndex(lobby, player.role)) {
                 respawn(gameBoard, player, lobby); // Pacman respawns
@@ -618,14 +610,17 @@ io.on('connection', socket => {
     setQueue(lobby, player.role, 0);
   }
 
-  // check the status of the game (pacman collected all dots/pills or not)
+  // Check the status of the game (pacman collected all dots/pills or not)
   function checkGameStatus(lobby) {
     let gameBoard = getGameBoard(lobby);
+    // Check each gameboard index and ghost prevPosType for a dot/pill
     for (var i = 0; i < gameBoard.length; i++) {
       if (gameBoard[i] == 2 || gameBoard[i] == 6)  {
         return false;
       }
+      if ((i > 0 && i < 4) && (getPrevPosType(lobby, i) == 2 || getPrevPosType(lobby, i) == 6)) return false;
     }
+
     return true;
   }
 
@@ -653,36 +648,13 @@ io.on('connection', socket => {
     io.to(user.lobby).emit('lobbyMessage', {user: user, username: username, message: message});
   });
 
-  // Development purposes only. DELETE THIS
-  // todo
-  // Simulate a game ending
-  socket.on('simGameOver', () =>  {
-    const user = getCurrentUser(socket.id);
-
-    let gameUpdateTimer = getGameUpdateTimer(user.lobby);
-    clearInterval(gameUpdateTimer);
-
-    io.to(user.lobby).emit('gameOver', {
-      lobby: user.lobby,
-      players: getLobbyPlayers(user.lobby),
-      gameTime: endGame(user.lobby)
-    });
-
-    clearGame(user.lobby);
-
-    // Clear all player data
-    getLobbyPlayers(user.lobby).forEach((player) => {
-      playerLeave(user.lobby, player.role);
-    });
-  });
-
   // Runs when client disconnects
   socket.on('disconnect', () => {
     if (getCurrentUser(socket.id) != undefined) {
       const user = getCurrentUser(socket.id);
 
       // Let lobby know that user has left
-      console.log('[Update]: User left lobby ' + user.lobby + ' (user: ' + user.name + ')');
+      console.log('[Lobby ' + user.lobby + ']: User ' + user.name + ' left');
       io.to(user.lobby).emit('message', user.name + ' left the lobby.');
 
       // Handle Lobby if there is a game in progress (assign cpus, etc.)
@@ -704,7 +676,7 @@ io.on('connection', socket => {
           }
           clearInterval(getGameUpdateTimer(user.lobby)); // Stop constant server-client communication
           clearGame(user.lobby); // Clear the game data
-          console.log('[Update]: Game ending in lobby ' + user.lobby);
+          console.log('[Lobby ' + user.lobby + ']: Game ending');
         }
         else if (userLeft) {
           // Send lobby updated information regarding users, players, and the game
