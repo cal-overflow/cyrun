@@ -6,6 +6,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.js"></script>
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 <link rel="stylesheet" href="styles.css" />
+<link rel="icon" type="image/png" href="pacman.png"/>
 </head>
 
 <body style="background-color:#E6E6E6">
@@ -43,17 +44,27 @@
     <!-- Right Column -->
     <div class="col-lg-3 pt-38">
       <div id="users_lobby" class="bg-light mt-2 rounded p-2 border border-dark border-5">
-        <h4>Users</h4>
+        <form id="game_button_form" action="index.html" class="form-group">
+          <button class="btn btn-primary center-text" id="begin_game">Begin Game</span></button>
+          <button type="submit" class="btn btn-primary" id="leave_game" onclick="location.href = 'index.html'">Leave game</button>
+          <HR>
+        </form>
+        <h4>Players</h4>
         <div id="users">
           <div id="user1" class="userListItem"></div>
           <div id="user2" class="userListItem"></div>
           <div id="user3" class="userListItem"></div>
           <div id="user4" class="userListItem"></div>
         </div>
-        <form id="leave_game_form" action="index.html" class="form-group">
-          <button type="submit" class="btn btn-primary" id="leave_game" onclick="location.href = 'index.html'">Leave game</button>
+        <form id="cpu-difficulty" class="form-group">
+          <HR>
+          <h4 class="center-text">CPU Difficulty</h4>
+          <button class="btn btn-primary center-text" type="button" id="easy">Easy</button>
+          <button class="btn btn-primary center-text" type="button" id="normal">Normal</button>
+          <button class="btn btn-primary center-text" type="button" id="hard">Hard</button>
         </form>
       </div>
+
       <div id="endgameboard" class="bg-light mt-2 rounded p-2 border border-dark border-5">
         <nav class="navbar navbar-light bg-dark">
           <a class="navbar-brand mx-auto">
@@ -74,7 +85,7 @@
           <form action="index.html" class="form-group">
             <button type="submit" class="btn btn-primary">Return to main menu</button>
           </form>
-          <p><a href="index.html#scoring">About Scoring</a></p>
+          <p><a href="index.html#scoring" onclick="toggleScoring();">About Scoring</a></p>
         </div>
       </div>
     </div>
@@ -82,7 +93,7 @@
 </div>
 <p></p><br><br>
 <footer class="footer text-center bg-dark">
-  <p><span id="pregameMsg">Four players are needed for a game to begin<br /></span>
+  <p><span id="footerMsg">Waiting for players<br /></span>
   Created by <a href="http://christianlisle.com" target="_blank">Christian Lisle</a>, <a href="https://github.com/goofyspoon?tab=repositories" target="_blank">Marissa Gustafson</a>, and Joe Dobosenski</p>
 </footer>
 <script>
@@ -92,7 +103,6 @@
       chat.style.display = 'block';
     else {
       chat.style.display = 'none';
-      document.getElementById('chat_container')
     }
 
     // Detect when orientation is changed and fix toggleChat issue that happens when a user hides chat in portrait and then goes to landscape orientation

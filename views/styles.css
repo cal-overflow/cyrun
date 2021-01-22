@@ -16,6 +16,19 @@
   margin: 0; /* Remove margins */
 }
 
+#controls, #scoring  {
+  text-decoration: underline;
+}
+
+#controls:hover, #scoring:hover  {
+  text-decoration: none;
+}
+
+
+#controls_instructions, #scoring_instructions {
+  display: none;
+}
+
 ul {
   list-style-type: none;
 }
@@ -123,6 +136,15 @@ ul {
   padding-right: 5%;
 }
 
+#lobbyListFooter  {
+  width: 80%;
+  text-align: center;
+  padding-top: 5px;
+  margin: 0 auto;
+  font-size: .7em;
+  line-height: .7em;
+}
+
 footer p  {
   width: 82%;
   margin: 0 auto;
@@ -140,8 +162,8 @@ footer p  {
 
 /* chatbox and user list styling on lobby page*/
 #chat, #users_lobby {
-  min-height: 500px;
-  height: 500px;
+  min-height: 600px;
+  height: 600px;
   position: relative;
 }
 
@@ -155,23 +177,32 @@ footer p  {
   html, body  {
     overflow-x: hidden;
   }
-  .toggleChat, #by, #countdown, #leave_game {
-    font-size: 2em;
+  .toggleChat, #by, #countdown  {
+    font-size: 1.75em;
     margin: 10px auto 10px auto;
-    display: block;
+    display: flex;
+  }
+
+  #begin_game, #leave_game  {
+    font-size: 1.75em;
+    margin: 5px auto 5px auto;
+
   }
 
   @media only screen and (min-width: 951px) {
     #users_lobby  {
-      min-height: 620px;
-      height: 650px;
+      min-height: 725px;
+      height: auto;
+    }
+    #users  {
+      height: auto;
     }
   }
 
   @media only screen and (max-width: 950px) {
     #users_lobby  {
-      min-height: 500px;
-      height: 550px;
+      min-height: 600px;
+      height: 650px;
     }
   }
 
@@ -211,7 +242,6 @@ footer p  {
     display: none;
   }
 }
-
 
 .userListItem {
   padding-top: 10px;
@@ -270,13 +300,20 @@ footer p  {
   font-weight: bold;
 }
 
-#leave_game_form {
-  position: absolute;
-  margin-top: 100px;
+#game_button_form {
+  margin-top: 10px;
   width: 100%;
   bottom: 3px;
   text-align: center;
 }
+
+#cpu-difficulty {
+  clear: both;
+  width: 100%;
+  margin-top: 10px;
+  text-align: center;
+}
+
 
 #wrapper {
   position: relative;
@@ -418,6 +455,17 @@ li{
   border-radius: 50%;
 }
 
+/* in-game-name (above character) */
+.ign  {
+  animation: none !important;
+  margin-bottom: 4px;
+  overflow: visible;
+  white-space: nowrap;
+  text-align: center;
+  font-size: .5em;
+  color: white;
+}
+
 .ghost {
   width: 100%;
   height: 100%;
@@ -426,49 +474,41 @@ li{
 .ghost1 {
   background-image: url('red_ghost.png');
   background-size: cover;
-  animation: float 3s ease-out infinite, wave 6s linear infinite;
+  animation: float 2s ease-out infinite, wave 2s linear infinite;
   filter: drop-shadow(0px 1px 2px #FF0000);
 }
 
 .ghost2 {
   background-image: url('blue_ghost.png');
   background-size: cover;
-  animation: float 3s ease-out infinite, wave 6s linear infinite;
+  animation: float 2s ease-out infinite, wave 2s linear infinite;
   filter: drop-shadow(0px 1px 2px #00F7FF);
 }
 
 .ghost3 {
   background-image: url('orange_ghost.png');
   background-size: cover;
-  animation: float 3s ease-out infinite, wave 6s linear infinite;
+  animation: float 2s forwards infinite, wave 2s linear infinite;
   filter: drop-shadow(0px 1px 2px #FCB445);
 }
 
 .edible_ghost {
   filter: invert(1) grayscale(0.25);
-  animation: flash 2s ease-out forwards infinite;
+  animation: float 2s forwards infinite, wave .22s linear infinite;
 }
 
 @keyframes float  {
-  50% { transform: translate(0, -3px); }
+  35% { transform: translate(0, -0.5px); }
+  50% { transform: translate(0, -1px); }
+  65% { transform: translate(0, -0.5px); }
+  100% { transform: translate(0, 0); }
 }
 
 @keyframes wave {
-  25% { transform: skew(3deg, 3deg); }
+  25% { transform: skew(2deg, 2deg); }
   50% { transform: skew(0deg, 0deg); }
-  75% { transform: skew(-3deg, -3deg); }
+  75% { transform: skew(-2deg, -2deg); }
   100% { transform: skew(0deg, 0deg); }
-}
-
-
-@keyframes flash  {
-  5% { filter: invert(1); }
-  10% { filter: invert(.75); }
-  25% { filter: invert(.5); }
-  50% { filter: invert(0); }
-  75% { filter: invert(.5); }
-  90% { filter: invert(.75); }
-  95% { filter: invert(1); }
 }
 
 .pacman {

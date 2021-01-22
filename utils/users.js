@@ -1,18 +1,11 @@
 const users = [];
 
 //Join user
-function userJoin(id, username, lobby)  {
+function userJoin(id, name, lobby)  {
   var user = {id,
-                username,
+                name,
                 lobby,
-                playerRole : -1,
-                index: -1,
-                direction: 0,
-                queue: 0,
-                prevPosType: 0,
-                prevIndex: -1,
-                status: 0,
-                score : 0
+                player: -1
               };
 
   users.push(user);
@@ -34,101 +27,20 @@ function userLeave(id)  {
   }
 }
 
-//Get lobby Users
+// Get lobby Users
 function getLobbyUsers(lobby) {
   return users.filter(user => user.lobby === lobby);
 }
 
 // Set player role (1-4)
-function setPlayerNum(id, number){
+function setPlayerAssignment(id, number){
   let index = users.findIndex(user => user.id === id);
-  users[index].playerRole = number;
+  users[index].player = number;
 }
 
-// Set Direction of player (not used right now)
-function setDirection(id, xDir, yDir){
-  let index = users.findIndex(user => user.id === id);
-  users[index].xDirection = xDir;
-  users[index].yDirection = yDir;
-}
-
-// Get index of user (from id)
-function getIndex(id) {
-  return getCurrentUser(id).index;
-}
-
-// Set index of user (id)
-function setIndex(id, i)  {
-  let index = users.findIndex(user => user.id === id);
-  users[index].index = i;
-}
-
-// Get the direction of a user (0 none, -20 up, 1 right, 20 down, -1 left)
-function getDirection(id) {
-  if(getCurrentUser(id) != undefined)
-    return getCurrentUser(id).direction;
-}
-
-// Set the direction of a user (0 none, -20 up, 1 right, 20 down, -1 left)
-function setDirection(id, direction)  {
-  let index = users.findIndex(user => user.id === id);
-  users[index].direction = direction;
-}
-
-// Get the queue of a user (next direction) (0 none, -20 up, 1 right, 20 down, -1 left)
-function getQueue(id) {
-  if(getCurrentUser(id) != undefined)
-    return getCurrentUser(id).queue;
-}
-
-// Set the direction of a user (0 none, -20 up, 1 right, 20 down, -1 left)
-function setQueue(id, direction)  {
-  let index = users.findIndex(user => user.id === id);
-  users[index].queue = direction;
-}
-
-// Get prevIndex of user (from id)
-function getPrevIndex(id) {
-  return getCurrentUser(id).prevIndex;
-}
-
-// Set prevIndex of user (id)
-function setPrevIndex(id, i)  {
-  let index = users.findIndex(user => user.id === id);
-  users[index].prevIndex = i;
-}
-
-// Get player status
-function getStatus(id)  {
-  return getCurrentUser(id).status;
-}
-
-// Set player status
-function setStatus(id, status)  {
-  let index = users.findIndex(user => user.id === id);
-  users[index].status = status;
-}
-
-// Get prev position type (empty, dot, pill)
-function getPrevPosType(id)  {
-  return getCurrentUser(id).prevPosType;
-}
-
-// Get prev position type (empty, dot, pill)
-function setPrevPosType(id, type)  {
-  let index = users.findIndex(user => user.id === id);
-  users[index].prevPosType = type;
-}
-
-// Get score of a player
-function getScore(id) {
-  return getCurrentUser(id).score;
-}
-
-// Increment score of a player
-function incrementScore(id, amount) {
-  let index = users.findIndex(user => user.id === id);
-  users[index].score += amount;
+// Get player role
+function getPlayerAssignment(id)  {
+  return users.find(user => user.id === id).player;
 }
 
 module.exports = {
@@ -136,19 +48,6 @@ module.exports = {
   getCurrentUser,
   userLeave,
   getLobbyUsers,
-  setPlayerNum,
-  getIndex,
-  setIndex,
-  getDirection,
-  setDirection,
-  getQueue,
-  setQueue,
-  getPrevIndex,
-  setPrevIndex,
-  getPrevPosType,
-  setPrevPosType,
-  getStatus,
-  setStatus,
-  getScore,
-  incrementScore
+  setPlayerAssignment,
+  getPlayerAssignment
 };
