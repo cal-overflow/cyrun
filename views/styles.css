@@ -16,6 +16,19 @@
   margin: 0; /* Remove margins */
 }
 
+#controls, #scoring  {
+  text-decoration: underline;
+}
+
+#controls:hover, #scoring:hover  {
+  text-decoration: none;
+}
+
+
+#controls_instructions, #scoring_instructions {
+  display: none;
+}
+
 ul {
   list-style-type: none;
 }
@@ -121,6 +134,15 @@ ul {
 #lobbyList p, #lobbyList span {
   padding-left: 5%;
   padding-right: 5%;
+}
+
+#lobbyListFooter  {
+  width: 80%;
+  text-align: center;
+  padding-top: 5px;
+  margin: 0 auto;
+  font-size: .7em;
+  line-height: .7em;
 }
 
 footer p  {
@@ -472,7 +494,7 @@ li{
 
 .edible_ghost {
   filter: invert(1) grayscale(0.25);
-  animation: flash 0.22s ease-out forwards infinite, wave 2s linear infinite;
+  animation: float 2s forwards infinite, wave .22s linear infinite;
 }
 
 @keyframes float  {
@@ -487,17 +509,6 @@ li{
   50% { transform: skew(0deg, 0deg); }
   75% { transform: skew(-2deg, -2deg); }
   100% { transform: skew(0deg, 0deg); }
-}
-
-
-@keyframes flash  {
-  5% { filter: invert(1); }
-  10% { filter: invert(.75); }
-  25% { filter: invert(.5); }
-  50% { filter: invert(0); }
-  75% { filter: invert(.5); }
-  90% { filter: invert(.75); }
-  95% { filter: invert(1); }
 }
 
 .pacman {

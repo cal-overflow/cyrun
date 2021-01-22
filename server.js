@@ -201,7 +201,7 @@ io.on('connection', socket => {
           gameBoard[getIndex(lobby, player.role)] = player.role + 2;
           setPrevPosType(lobby, player.role, 8);
         }
-        else { // IF player is pacman spawn accordingly
+        else { // Player is pacman. Spawn accordingly.
           var pacmanStart = 0;
           while (gameBoard[pacmanStart] != 0)
             pacmanStart = Math.floor(Math.random() * (292 - 288)) + 288;
@@ -241,7 +241,6 @@ io.on('connection', socket => {
 
   // A user has requested the difficulty changes
   socket.on('difficultyChange', (difficulty) => {
-    console.log('difficulty change');
     let user = getCurrentUser(socket.id);
     if (user != undefined)  {
       setCpuDifficulty(user.lobby, difficulty);
@@ -253,7 +252,7 @@ io.on('connection', socket => {
 
   // Choose a random level (1 or 2) and store a copy of that level as gameBoard
   function createGameBoard(lobby)  {
-    let choice = Math.floor(Math.random() * (5 - 1)); // max 3 (exclusive) min 1 (inclusive)
+    let choice = Math.ceil(Math.random() * 3); // Map 1, 2, or 3
 
     switch (choice) {
       case 1:
@@ -311,19 +310,21 @@ io.on('connection', socket => {
     }
 
     // Take the prederminted target, and determine a path using the pathFinding function. Then set the target to the first step within said path.
-    target = Constants.pathFinding(gameBoard, cpu.index, target)[1];
+    let path = Constants.pathFinding(gameBoard, cpu.index, target);
+    if (path[1] != undefined) target = path[1];
 
-    // Choose a random direction for worst-case scenario (no path found)
-    let randomX = (Math.floor(Math.random() * 2) == 1)? -1: 1;
-    let randomY = (Math.floor(Math.random() * 2) == 1)? -20: 20;
-    let randomDirection = (Math.floor(Math.random() * 2) == 1)? randomX: randomY;
+    // Signum represents positivity or negativity of direction.
+    var signum = (cpu.index > target)? 1: -1;
 
-    var signum = (cpu.index > target)? 1: -1; // Represent positivity or negativity of direction.
+    // Choose a random direction (-1: left, -20: up, 1: right, 20: down) for worst-case scenario (no path found).
+    let randomDirection = ((Math.floor(Math.random() * 2) == 1)? 1: -1) * ((Math.floor(Math.random() * 2) == 1)? 1: 20);
 
-    // Set the queue (direction) based on the new target (location)
+    // Set the queue (direction) based on the new target (location):
     if (target + (signum*20) == cpu.index) setQueue(lobby, role, ((-1)*signum*20));
     else if (target + (signum*1) == cpu.index) setQueue(lobby, role, (((-1)*signum*1)));
-    else setQueue(lobby, role, randomDirection); // A path was not found by the path-finding function. Move randomly
+    // Worst-case scenario: A path was not found by the path-finding function.
+    // In this case either move randomly or do nothing. There is a ~66% chance of randomly moving.
+    else if (Math.floor(Math.random() * 3) != 0)  setQueue(lobby, role, randomDirection)
   }
 
   // Constant updates between clients and server (real-time game)

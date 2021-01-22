@@ -149,6 +149,7 @@ function outputPlayers(players){
     else if(player.role == 4)
       img.src = "pacman.png";
 
+    if (player.role != 4) img.setAttribute('class', ('ghost' + player.role));
     playerDisplay.innerHTML = "";
     p.appendChild(img);
     p.appendChild(name);
@@ -157,9 +158,19 @@ function outputPlayers(players){
   });
 }
 
-function updateScores(players)  {
+function updateScores(players, status)  {
   players.forEach(player => {
       userList.children[player.role - 1].children[0].children[2].innerHTML = "Score: " + player.score;
+      // Set the ghosts player icons to 'edible ghost' when the game status matches accordingly.
+      if (status == 1 && player.role != 4) {
+        userList.children[player.role - 1].children[0].children[0].removeAttribute('class');
+        userList.children[player.role - 1].children[0].children[0].setAttribute('class', 'edible_ghost');
+      }
+      // Clear the class atribute for the ghost images (so the ghosts are no longer edible on player list).
+      else if (status != 1) {
+        userList.children[player.role - 1].children[0].children[0].removeAttribute('class');
+        userList.children[player.role - 1].children[0].children[0].setAttribute('class', ('ghost' + player.role));
+      }
   });
 }
 
@@ -179,7 +190,7 @@ socket.on('gameUpdate', ({users, players, gameBoard, status}) => {
     }
   }
   drawGameBoard(players, localBoard, status);
-  updateScores(players);
+  updateScores(players, status);
 });
 
 function drawGameBoard(players, gameBoard, status){

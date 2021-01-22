@@ -6,6 +6,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.js"></script>
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 <link rel="stylesheet" href="styles.css" />
+<link rel="icon" type="image/png" href="pacman.png"/>
 </head>
 
 <body style="background-color:#E6E6E6">
@@ -84,7 +85,7 @@
           <form action="index.html" class="form-group">
             <button type="submit" class="btn btn-primary">Return to main menu</button>
           </form>
-          <p><a href="index.html#scoring">About Scoring</a></p>
+          <p><a href="index.html#scoring" onclick="toggleScoring();">About Scoring</a></p>
         </div>
       </div>
     </div>
@@ -102,7 +103,6 @@
       chat.style.display = 'block';
     else {
       chat.style.display = 'none';
-      document.getElementById('chat_container')
     }
 
     // Detect when orientation is changed and fix toggleChat issue that happens when a user hides chat in portrait and then goes to landscape orientation

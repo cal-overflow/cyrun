@@ -4,8 +4,9 @@
 <!-- Meta tag below is important for safari on mobile devices (prevents zooming when a user focuses on a text box, etc.) -->
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.js"></script>
-<link rel="stylesheet" href="styles.css" />
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+<link rel="stylesheet" href="styles.css" />
+<link rel="icon" type="image/png" href="pacman.png"/>
 </head>
 <body style="background-color:#E6E6E6">
   <nav class="navbar navbar-light bg-dark">
@@ -36,37 +37,47 @@
       <div id="lobbyLabelContainer" class="bg-light"><label class='center-text'><strong>Active Lobbies</strong></label><HR SIZE="1"></div>
         <div id="lobbyList"></div>
       </div>
+      <p id="lobbyListFooter"></p>
       </div>
 
       <div class="col-md-4 order-md-2">
         <div id="howToPlay" class="bg-light mt-2 rounded p-2 border border-dark border-5">
+          <h4>About</h4>
+          <HR>
+            <ul class="instructions">
+              <li>CyRun is a multiplayer PacMan game that originated as a final project for <a href="https://christianlisle.com/2020/11/22/com-s-319/" target="_blank" title="View a student's experience taking this course and working on CyRun">COM S 319</a>. Learn more <a href="https://christianlisle.com/2020/11/30/cyrun/" target="_blank" title="Learn more about CyRun">here</a>.</li>
+            </ul>
+
           <h4>How To Play</h4>
           <HR>
           <ul class="instructions">
             <li><span class="bold">PacMan</span>: Collect resources to earn points. Grab a power pill to scare the ghosts and try to catch them to earn points.</li>
             <li><span class="bold">Ghosts</span>: Try to catch PacMan as many times as you can. Each time will earn you points.</li>
-            <li>When PacMan is caught, he will safely respawn at a random location on the board.</li>
+            <li>When a player is caught, they will safely respawn on the board.</li>
           </ul>
-          <h4>Controls</h4>
+
+          <h4>Play alone or with friends!</h4>
           <HR>
           <ul class="instructions">
-            <li><span class="bold">Desktop</span>: Press the arrow keys to change the direction of your player.</li>
-            <li><span class="bold">Mobile</span>: While your finger is on the game board, swipe in any direction to move your player.</li>
+            <li>Begin by joining an existing lobby or creating a new one.</li>
+            <li>Start the game to play alone or share the lobby name and play against friends.</li>
           </ul>
-          <h4 id="scoring">Scoring</h4>
-          <HR>
-          <ul class="instructions">
-            <li><span class="bold">Who Wins</span>: Either PacMan or the three ghosts will become victorious. The scores of the three ghosts are combined after the game to determine if PacMan or the ghosts scored the most points.</li>
+
+          <h4 id="scoring" onclick='toggleScoring();'>Scoring</h4>
+          <ul class="instructions" id="scoring_instructions">
+            <HR>
+            <li><span class="bold">Who Wins?</span> Either PacMan or the three ghosts will become victorious. The three ghosts scores are combined after the game to determine whether PacMan or the ghosts scored the most points.</li>
             <li class="center-text"><span class="bold">Scoring System</span></li>
-            <li>Pacman consumes a dot or pill - <span class="bold">1 point</span></li>
-            <li>Pacman consumes a ghost - <span class="bold">2 points</span></li>
-            <li>Ghost kills Pacman - <span class="bold">15 points</span></li>
+            <li>PacMan consumes a dot or pill - <span class="bold">1 point</span></li>
+            <li>PacMan consumes a ghost - <span class="bold">2 points</span></li>
+            <li>Ghost kills PacMan - <span class="bold">15 points</span></li>
           </ul>
-          <h4>Play with Friends</h4>
-          <HR>
-          <ul class="instructions">
-            <li>Either join an existing lobby or start a new one by entering the lobby name.</li>
-            <li>Share the lobby name to play against friends.</li>
+
+          <h4  id="controls" onclick="toggleControls();">Controls</h4>
+          <ul id="controls_instructions" class="instructions">
+            <HR>
+            <li><span class="bold">Desktop</span>: Press the arrow keys to change the direction of your player.</li>
+            <li><span class="bold">Mobile</span>: While your finger is on the game board, swipe in any direction to move your player. <span class="bold">Note</span>: Swipe controls have not been entirely implemented, so player feedback is somewhat unresponsive.</li>
           </ul>
         </div>
       </div>
@@ -78,6 +89,30 @@
     <p>Join a lobby with three other players to begin a game!<br /></span>
     Created by <a href="http://christianlisle.com" target="_blank">Christian Lisle</a>, <a href="https://github.com/goofyspoon?tab=repositories" target="_blank">Marissa Gustafson</a>, and Joe Dobosenski</p>
 </footer>
+
+<script>
+  function toggleScoring() {
+    let instructions = document.getElementById('scoring_instructions');
+    if (instructions.style.display != 'block')
+      instructions.style.display = 'block';
+    else {
+      instructions.style.display = 'none';
+    }
+  }
+
+  function toggleControls() {
+    let controls = document.getElementById('controls_instructions');
+    if (controls.style.display != 'block')
+      controls.style.display = 'block';
+    else {
+      controls.style.display = 'none';
+    }
+  }
+
+  // Call toggleScoring function if user clicked on 'index.html#scoring' hyperlink (from post-game scoreboard in lobby.html)
+  if (window.location.href.indexOf("#scoring") != -1) toggleScoring();
+</script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.9.4/qs.min.js" integrity="sha512-BHtomM5XDcUy7tDNcrcX1Eh0RogdWiMdXl3wJcKB3PFekXb3l5aDzymaTher61u6vEZySnoC/SAj2Y/p918Y3w==" crossorigin="anonymous"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="./entrance.js"></script>

@@ -1,6 +1,7 @@
 
 const socket = io();
 const lobbyList = document.getElementById('lobbyList');
+const lobbyListFooter = document.getElementById('lobbyListFooter');
 const entranceForm = document.getElementById('entranceForm');
 const entranceFormUsernameField = document.getElementById('username_entrance');
 const entranceFormLobbyField = document.getElementById('gamelobby_entrance');
@@ -27,8 +28,11 @@ socket.on('lobbyList', (lobbies) => {
     return filtered;
   }, []);
 
-  if (realLobbies.length == 0)
+  if (realLobbies.length == 0)  {
     lobbyList.innerHTML += "<p>No active lobbies</p>";
+    lobbyListFooter.innerText = '';
+  }
+  else lobbyListFooter.innerText = 'Click a lobby\'s name to join';
 });
 
 // This function is called when a user clicks on a Lobby from the lobby list. The lobby field is automatically filled out and the form is submitted
