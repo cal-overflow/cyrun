@@ -431,17 +431,18 @@ function gameStarted()  {
 
 this.document.addEventListener('keydown', function(event) {
   if (!event.repeat)  { // event.repeat is true if user is holding down key (this causes issues with server)
+    console.log(event.key);
     if(playerEnabled != -1){ // check to make sure that the game has started
-      if (event.key == "ArrowLeft") {
+      if (event.key == "ArrowLeft" || event.key == "a") {
         socket.emit('changeDirection', ('left'));
       }
-      else if (event.key == "ArrowUp") {
+      else if (event.key == "ArrowUp" || event.key == "w") {
         socket.emit('changeDirection', ('up'));
       }
-      else if (event.key == "ArrowRight") {
+      else if (event.key == "ArrowRight" || event.key == "d") {
         socket.emit('changeDirection', ('right'));
       }
-      else if (event.key == "ArrowDown") {
+      else if (event.key == "ArrowDown" || event.key == "s") {
         socket.emit('changeDirection', ('down'));
       }
     }
