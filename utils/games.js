@@ -11,6 +11,8 @@ function newGame(lobby) {
     votes: 0,
     status: 0,
     gameOver: false,
+    consumedEdibles: 0,
+    edibleCount: 0,
     // Array represents available roles (0's are empty roles, 1's are user occupied roles, and 2's are cpu occupied roles)
     roles: [1, 0, 0, 0, 0],
     // Array represents the players controlled by CPU's
@@ -140,6 +142,28 @@ function getCpuDifficulty(lobby)  {
   return getGame(lobby).cpus[0];
 }
 
+// Increase a game's (PacMan's) consumed edibles
+function setEdibleCount(lobby, count) {
+  let index = games.findIndex(game => game.lobby === lobby);
+  games[index].edibleCount = count;
+}
+
+// Get the number of (PacMan's) consumed edibles
+function getEdibleCount(lobby)  {
+  return getGame(lobby).edibleCount;
+}
+
+// Increase a game's (PacMan's) consumed edibles
+function consumeEdible(lobby) {
+  let index = games.findIndex(game => game.lobby === lobby);
+  games[index].consumedEdibles++;
+}
+
+// Get the number of (PacMan's) consumed edibles
+function getConsumedEdibles(lobby)  {
+  return getGame(lobby).consumedEdibles;
+}
+
 module.exports = {
   newGame,
   getGame,
@@ -162,5 +186,9 @@ module.exports = {
   setCpus,
   getCpus,
   setCpuDifficulty,
-  getCpuDifficulty
+  getCpuDifficulty,
+  setEdibleCount,
+  getEdibleCount,
+  consumeEdible,
+  getConsumedEdibles
 };

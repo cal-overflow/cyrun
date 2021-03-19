@@ -27,7 +27,11 @@ const {
   setCpus,
   getCpus,
   setCpuDifficulty,
-  getCpuDifficulty
+  getCpuDifficulty,
+  setEdibleCount,
+  getEdibleCount,
+  consumeEdible,
+  getConsumedEdibles
 } = require('./utils/games');
 // User (stores user)
 const {
@@ -257,12 +261,15 @@ io.on('connection', socket => {
     switch (choice) {
       case 1:
         setGameBoard(lobby, Constants.LEVEL1.slice()); // copy LEVEL1 in Constants.js
+        setEdibleCount(lobby, Constants.LEVEL1.filter(o => o == 2 || o == 6).length);
         break;
       case 2:
         setGameBoard(lobby, Constants.LEVEL2.slice()); // copy LEVEL2 in Constants.js
+        setEdibleCount(lobby, Constants.LEVEL2.filter(o => o == 2 || o == 6).length);
         break;
       case 3:
         setGameBoard(lobby, Constants.LEVEL3.slice()); // copy LEVEL3 in Constants.js
+        setEdibleCount(lobby, Constants.LEVEL3.filter(o => o == 2 || o == 6).length);
         break;
     }
 
@@ -503,6 +510,7 @@ io.on('connection', socket => {
           }
         }
         incrementScore(lobby, player.role, 1);
+        consumeEdible(lobby); // Update the game's counter of consumed edibles
         gameBoard[index] = 0; // dot or pill will be replaced with empty space after pacman moves again (prevPosType set after this function in game())
         return true;
       }
@@ -528,6 +536,7 @@ io.on('connection', socket => {
               // Check to see if ghost was passing over dot or pill. if so, pacman gains points
               if (getPrevPosType(lobby, player.role) == 2 || getPrevPosType(lobby, player.role) == 6) {
                 pointUnderGhost = true;
+                consumeEdible(lobby); // Update the game's counter of consumed edibles
               }
               respawn(gameBoard, player, lobby); // Ghost repawns
             }
@@ -547,13 +556,16 @@ io.on('connection', socket => {
       }
       else { // A ghost collided with another player
         if (gameBoard[index] == 7)  { // A ghost collided with pacman
-          if (getStatus(lobby) == 1)  { // Pacman ate a pill and can eat ghosts
+          let playerPrevType = player.prevPosType; // Set the prevPosType of current player so it can be accessed within forEach
+          if (getStatus(lobby) == 1)  { // Pacman recently consumed a pill and can eat ghosts
             players.forEach(player =>  {
-              if (index == getIndex(lobby, player.role)) {
+              if (index == getIndex(lobby, player.role))
                 incrementScore(lobby, player.role, 2); // Pacman ate this ghost and increases score
-                setPrevPosType(lobby, player.role, 0); // Replace ghost with empty space after pacman moves
-              }
             });
+            // Set their old position to the correct type (typically done in game() function, but this is a specific case)
+            console.log('player: ' + player.role + ' -  setting ' + player.index + ' to ' + player.prevPosType);
+            gameBoard[player.index] = player.prevPosType;
+            // Respawn ghost
             respawn(gameBoard, player, lobby); // This ghost respawns
           }
           else { // Pacman can't eat ghosts and is killed
@@ -585,6 +597,7 @@ io.on('connection', socket => {
   function respawn(gameBoard, player, lobby, gameStart = true)  {
     var foundSpawn = false;
     var spawn = Math.floor(Math.random() * gameBoard.length);
+    if (gameStart) gameBoard[getIndex(lobby, player.role)] = getPrevPosType(lobby, player.role); // Replace old position with blank spot (only if game has started)
     if (player.role == 4) {
       // choose a random spawn point for Pacman in map
       // ensures that player is not spawning in a wall or play
@@ -602,7 +615,6 @@ io.on('connection', socket => {
       }
       setPrevPosType(lobby, player.role, 8);
     }
-    if (gameStart) gameBoard[getIndex(lobby, player.role)] = 0; // Replace old position with blank spot (only if game has started)
     setIndex(lobby, player.role, spawn);
     setPrevIndex(lobby, player.role, getIndex(lobby, player.role));
     gameBoard[getIndex(lobby, player.role)] = (player.role == 4)? 7: player.role + 2;
@@ -613,16 +625,7 @@ io.on('connection', socket => {
 
   // Check the status of the game (pacman collected all dots/pills or not)
   function checkGameStatus(lobby) {
-    let gameBoard = getGameBoard(lobby);
-    // Check each gameboard index and ghost prevPosType for a dot/pill
-    for (var i = 0; i < gameBoard.length; i++) {
-      if (gameBoard[i] == 2 || gameBoard[i] == 6)  {
-        return false;
-      }
-      if ((i > 0 && i < 4) && (getPrevPosType(lobby, i) == 2 || getPrevPosType(lobby, i) == 6)) return false;
-    }
-
-    return true;
+    return getEdibleCount(lobby) == getConsumedEdibles(lobby);
   }
 
   // Handle player direction changes (keypresses)
