@@ -38,6 +38,16 @@
     <div class="col-lg-6 text-center" id="wrapper">
       <h4 id="countdown"></h4>
       <div id="game"></div>
+      <div id="mobile_controls">
+        <div class="controls-row">
+          <button id="up" onclick="document.dispatchEvent(new KeyboardEvent('keydown',{'key':'ArrowUp'}));" class="btn btn-primary">⇨</button>
+        </div>
+        <div class="controls-row">
+          <button id="left" onclick="document.dispatchEvent(new KeyboardEvent('keydown',{'key':'ArrowLeft'}));" class="btn btn-primary">⇨</button>
+          <button id="down" onclick="document.dispatchEvent(new KeyboardEvent('keydown',{'key':'ArrowDown'}));" class="btn btn-primary">⇨</button>
+          <button id="right" onclick="document.dispatchEvent(new KeyboardEvent('keydown',{'key':'ArrowRight'}));" class="btn btn-primary">⇨</button>
+        </div>
+      </div>
     </div>
 
 
