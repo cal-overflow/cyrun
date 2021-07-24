@@ -430,6 +430,8 @@ function gameStarted()  {
 }
 
 this.document.addEventListener('keydown', function(event) {
+  event.preventDefault(); // Prevent user from scrolling screen with arrow keys
+
   if (!event.repeat)  { // event.repeat is true if user is holding down key (this causes issues with server)
     console.log(event.key);
     if(playerEnabled != -1){ // check to make sure that the game has started
