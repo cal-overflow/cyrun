@@ -2,11 +2,12 @@ const users = [];
 
 //Join user
 function userJoin(id, name, lobby)  {
-  var user = {id,
-                name,
-                lobby,
-                player: -1
-              };
+  var user = {
+    id,
+    name,
+    lobby,
+    player: -1
+  };
 
   users.push(user);
 

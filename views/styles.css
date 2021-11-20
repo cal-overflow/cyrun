@@ -42,6 +42,9 @@ ul {
 .mt-20  { margin-top: 20px; }
 .pt-38  { padding-top: 38px; }
 .pointer-cursor { cursor: pointer; }
+.not-allowed-cursor { cursor: not-allowed; }
+.grey { color: #a5a5a5; }
+
 
 #characters {
   width: 100%;

@@ -3,7 +3,8 @@ const games = [];
 
 // Construct game
 function newGame(lobby) {
-  var game = {lobby,
+  var game = {
+    lobby,
     board: null,
     timer: null,
     updateTimer: null,
